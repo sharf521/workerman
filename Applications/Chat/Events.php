@@ -12,9 +12,10 @@ class Events
     * @param int $client_id 连接id
     * @param mixed $message 具体消息
     */
-   public static function onMessage($client_id, $data) {
+   public static function onMessage($client_id, $data) {       
+       \MyPhp\DB::instance(\MyPhp\Config::$db);
 
-   		echo $data."\r\n";
+       echo $data."\r\n";
        $message = json_decode($data, true);
        $message_type = $message['type'];
        switch($message_type) {
@@ -88,6 +89,7 @@ class Events
            default:
                echo "unknown message $data";
        }
+       \MyPhp\DB::close(\MyPhp\Config::$db);
    }
    
    /**

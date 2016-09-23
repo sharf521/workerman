@@ -1,5 +1,6 @@
 <?php
 use \GatewayWorker\Lib\Gateway;
+use MyPhp\Lib\DB;
 /**
  * 主逻辑
  * 主要是处理 onConnect onMessage onClose 三个方法
@@ -13,11 +14,18 @@ class Events
     * @param mixed $message 具体消息
     */
    public static function onMessage($client_id, $data) {       
-       \MyPhp\DB::instance(\MyPhp\Config::$db);
+       DB::instance(\MyPhp\Config::$db);
+       
+       $user=new \MyPhp\Model\User();
+       $user->username='name';
+       $user->avatar='avatar';
+       echo $user->save(true);
 
-       echo $data."\r\n";
        $message = json_decode($data, true);
        $message_type = $message['type'];
+       if($message_type!='ping'){
+           echo "\r\n".$data."\r\n";
+       }
        switch($message_type) {
            case 'init':
                // uid
@@ -89,7 +97,7 @@ class Events
            default:
                echo "unknown message $data";
        }
-       \MyPhp\DB::close(\MyPhp\Config::$db);
+       DB::close(\MyPhp\Config::$db);
    }
    
    /**

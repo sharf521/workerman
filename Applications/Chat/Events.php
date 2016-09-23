@@ -16,10 +16,10 @@ class Events
    public static function onMessage($client_id, $data) {       
        DB::instance(\MyPhp\Config::$db);
        
-       $user=new \MyPhp\Model\User();
+/*       $user=new \MyPhp\Model\User();
        $user->username='name';
        $user->avatar='avatar';
-       echo $user->save(true);
+       echo $user->save(true);*/
 
        $message = json_decode($data, true);
        $message_type = $message['type'];

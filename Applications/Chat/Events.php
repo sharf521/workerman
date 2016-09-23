@@ -15,17 +15,13 @@ class Events
     */
    public static function onMessage($client_id, $data) {       
        DB::instance(\MyPhp\Config::$db);
-       
-/*       $user=new \MyPhp\Model\User();
-       $user->username='name';
-       $user->avatar='avatar';
-       echo $user->save(true);*/
+       $user=new \MyPhp\Model\User();
 
        $message = json_decode($data, true);
        $message_type = $message['type'];
-       if($message_type!='ping'){
-           echo "\r\n".$data."\r\n";
-       }
+//       if($message_type!='ping'){
+//           echo "\r\n".$data."\r\n";
+//       }
        switch($message_type) {
            case 'init':
                // uid
@@ -39,6 +35,13 @@ class Events
                );
                // 将当前链接与uid绑定
                Gateway::bindUid($client_id, $uid);
+
+               //更新用户信息
+               $user=$user->find($uid);
+               $user->username=$message['username'];
+               $user->avatar=$message['avatar'];
+               $user->save();
+
                // 通知当前客户端初始化
                $init_message = array(
                    'message_type' => 'init',

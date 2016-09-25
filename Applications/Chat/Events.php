@@ -26,6 +26,7 @@ class Events
            case 'init':
                // uid
                $uid = $message['id'];
+               echo $uid;
                // 设置session
                $_SESSION = array(
                    'username' => $message['username'],

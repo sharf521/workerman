@@ -14,8 +14,8 @@ class Events
     * @param mixed $message 具体消息
     */
    public static function onMessage($client_id, $data) {       
-       DB::instance(\MyPhp\Config::$db);
-       $user=new \MyPhp\Model\User();
+       //DB::instance(\MyPhp\Config::$db);
+       //$user=new \MyPhp\Model\User();
 
        $message = json_decode($data, true);
        $message_type = $message['type'];
@@ -24,7 +24,6 @@ class Events
 //       }
        switch($message_type) {
            case 'init':
-               // uid
                $uid = $message['id'];
                // 设置session
                $_SESSION = array(
@@ -37,11 +36,11 @@ class Events
                Gateway::bindUid($client_id, $uid);
 
                //更新用户信息
-               $user=$user->find($uid);
+               /*$user=$user->find($uid);
                $user->id=$uid;
                $user->username=$message['username'];
                $user->avatar=$message['avatar'];
-               $user->save();
+               $user->save();*/
 
                // 通知当前客户端初始化
                $init_message = array(
@@ -101,7 +100,7 @@ class Events
            default:
                echo "unknown message $data";
        }
-       DB::close(\MyPhp\Config::$db);
+       //DB::close(\MyPhp\Config::$db);
    }
    
    /**

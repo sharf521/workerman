@@ -20,7 +20,7 @@ class Events
        $message = json_decode($data, true);
        $message_type = $message['type'];
 //       if($message_type!='ping'){
-//           echo "\r\n".$data."\r\n";
+           echo "\r\n".$data."\r\n";
 //       }
        switch($message_type) {
            case 'init':
@@ -38,7 +38,6 @@ class Events
 
                //更新用户信息
                $user=$user->find($uid);
-               var_dump($user);
                $user->username=$message['username'];
                $user->avatar=$message['avatar'];
                $user->save();

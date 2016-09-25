@@ -77,6 +77,8 @@ class Events
                         'timestamp'=> time()*1000,
                     )
                );
+               echo $to_id;
+               echo json_encode($chat_message);
                switch ($type) {
                    // 私聊
                    case 'friend':

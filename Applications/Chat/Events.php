@@ -38,6 +38,7 @@ class Events
 
                //更新用户信息
                $user=$user->find($uid);
+               var_dump($user);
                $user->username=$message['username'];
                $user->avatar=$message['avatar'];
                $user->save();

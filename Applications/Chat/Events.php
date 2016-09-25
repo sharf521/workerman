@@ -26,7 +26,6 @@ class Events
            case 'init':
                // uid
                $uid = $message['id'];
-               echo $uid;
                // 设置session
                $_SESSION = array(
                    'username' => $message['username'],
@@ -39,13 +38,10 @@ class Events
 
                //更新用户信息
                $user=$user->find($uid);
-               var_dump($user);
+               $user->id=$uid;
                $user->username=$message['username'];
                $user->avatar=$message['avatar'];
                $user->save();
-
-               $user2=$user->find((int)$uid);
-               var_dump($user2);
 
                // 通知当前客户端初始化
                $init_message = array(

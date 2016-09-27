@@ -1,6 +1,7 @@
 <?php
 use \GatewayWorker\Lib\Gateway;
 use MyPhp\Lib\DB;
+
 /**
  * 主逻辑
  * 主要是处理 onConnect onMessage onClose 三个方法
@@ -9,123 +10,125 @@ use MyPhp\Lib\DB;
 class Events
 {
     private static $redis;
+    public static $user = array();
     public static function onWorkerStart($businessWorker)
     {
-        self::$redis=new \Redis();
-        self::$redis->pconnect('127.0.0.1',6379);
+        self::$redis = new \Redis();
+        self::$redis->pconnect('127.0.0.1', 6379);
     }
-    
+
     /**
-    * 当客户端发来消息时触发
-    * @param int $client_id 连接id
-    * @param mixed $message 具体消息
-    */
-   public static function onMessage($client_id, $data) {       
-       //DB::instance(\MyPhp\Config::$db);
-       //$user=new \MyPhp\Model\User();
+     * 当客户端发来消息时触发
+     * @param int $client_id 连接id
+     * @param mixed $message 具体消息
+     */
+    public static function onMessage($client_id, $data)
+    {
+        //DB::instance(\MyPhp\Config::$db);
+        //$user=new \MyPhp\Model\User();
 
-       $message = json_decode($data, true);
-       $message_type = $message['type'];
+        $message = json_decode($data, true);
+        $message_type = $message['type'];
 //       if($message_type!='ping'){
-           echo "\r\n".$data."\r\n";
+        echo "\r\n" . $data . "\r\n";
 //       }
-       switch($message_type) {
-           case 'init':
-               $uid = $message['id'];
-               // 设置session
-               $_SESSION = array(
-                   'username' => $message['username'],
-                   'avatar'   => $message['avatar'],
-                   'id'       => $uid,
-                   'sign'     => $message['sign']
-               );
-               // 将当前链接与uid绑定
-               Gateway::bindUid($client_id, $uid);
+        switch ($message_type) {
+            case 'init':
+                $uid = $message['id'];
+                // 设置session
+//                $_SESSION = array(
+//                    'username' => $message['username'],
+//                    'avatar' => $message['avatar'],
+//                    'id' => $uid,
+//                    'sign' => $message['sign']
+//                );
+                self::$user=array(
+                    'username' => $message['username'],
+                    'avatar' => $message['avatar'],
+                    'id' => $uid,
+                    'sign' => $message['sign']
+                );
+                // 将当前链接与uid绑定
+                Gateway::bindUid($client_id, $uid);
 
-               self::$redis->hSet('chat_room:101', $uid, serialize($_SESSION));
+                self::$redis->hSet('chat_room:101', $uid, serialize(self::$user));
 
 
-               //更新用户信息
-               /*$user=$user->find($uid);
-               $user->id=$uid;
-               $user->username=$message['username'];
-               $user->avatar=$message['avatar'];
-               $user->save();*/
-
-               // 通知当前客户端初始化
-               $init_message = array(
-                   'message_type' => 'init',
-                   'id'           => $uid,
-               );
-               Gateway::sendToClient($client_id, json_encode($init_message));
-               // 通知所有客户端添加一个好友
-               $reg_message = array('message_type'=>'addList', 'data'=>array(
-                   'type'     => 'friend',
-                   'username' => $message['username'],
-                   'avatar'   => $message['avatar'],
-                   'id'       => $uid,
-                   'sign'     => $message['sign'],
-                   'groupid'  => 1
-               ));
-               Gateway::sendToAll(json_encode($reg_message), null, $client_id);
-               // 让当前客户端加入群组101
-               Gateway::joinGroup($client_id, 101);
-               return;
-           case 'chatMessage':
-               // 聊天消息
-               $type = $message['data']['to']['type'];
-               $to_id = $message['data']['to']['id'];
-               $uid = $_SESSION['id'];
-               $chat_message = array(
+                // 通知当前客户端初始化
+                $init_message = array(
+                    'message_type' => 'init',
+                    'id' => $uid,
+                );
+                Gateway::sendToClient($client_id, json_encode($init_message));
+/*                // 通知所有客户端添加一个好友
+                $reg_message = array('message_type' => 'addList', 'data' => array(
+                    'type' => 'friend',
+                    'username' => $message['username'],
+                    'avatar' => $message['avatar'],
+                    'id' => $uid,
+                    'sign' => $message['sign'],
+                    'groupid' => 1
+                ));
+                Gateway::sendToAll(json_encode($reg_message), null, $client_id);*/
+                // 让当前客户端加入群组101
+                Gateway::joinGroup($client_id, 101);
+                return;
+            case 'chatMessage':
+                // 聊天消息
+                $type = $message['data']['to']['type'];
+                $to_id = $message['data']['to']['id'];
+                //$uid = $_SESSION['id'];
+                $uid=self::$user['id'];
+                $chat_message = array(
                     'message_type' => 'chatMessage',
                     'data' => array(
-                        'username' => $_SESSION['username'],
-                        'avatar'   => $_SESSION['avatar'],
-                        'id'       => $type === 'friend' ? $uid : $to_id,
-                        'type'     => $type,
-                        'content'  => htmlspecialchars($message['data']['mine']['content']),
-                        'timestamp'=> time()*1000,
+                        //'username' => $_SESSION['username'],
+                        //'avatar' => $_SESSION['avatar'],
+                        'username' => self::$user['username'],
+                        'avatar' => self::$user['avatar'],
+                        'id' => $type === 'friend' ? $uid : $to_id,
+                        'type' => $type,
+                        'content' => htmlspecialchars($message['data']['mine']['content']),
+                        'timestamp' => time() * 1000,
                     )
-               );
-               echo $to_id;
-               echo json_encode($chat_message);
-               switch ($type) {
-                   // 私聊
-                   case 'friend':
-                       return Gateway::sendToUid($to_id, json_encode($chat_message));
-                   // 群聊
-                   case 'group':
-                       return Gateway::sendToGroup($to_id, json_encode($chat_message), $client_id);
-               }
-               return;
-           case 'hide':
-           case 'online':
-               $status_message = array(
-                   'message_type' => $message_type,
-                   'id'           => $_SESSION['id'],
-               );
-               $_SESSION['online'] = $message_type;
-               Gateway::sendToAll(json_encode($status_message));
-               return;
-           case 'ping':
-               return;
-           default:
-               echo "unknown message $data";
-       }
-       //DB::close(\MyPhp\Config::$db);
-   }
-   
-   /**
-    * 当用户断开连接时触发
-    * @param int $client_id 连接id
-    */
-   public static function onClose($client_id) {
-       $uid=$_SESSION['id'];
-       $logout_message = array(
-           'message_type' => 'logout',
-           'id'           => $uid
-       );
-       Gateway::sendToAll(json_encode($logout_message));
-       self::$redis->hDel('chat_room:101', $uid);
-   }
+                );
+                switch ($type) {
+                    // 私聊
+                    case 'friend':
+                        return Gateway::sendToUid($to_id, json_encode($chat_message));
+                    // 群聊
+                    case 'group':
+                        return Gateway::sendToGroup($to_id, json_encode($chat_message), $client_id);
+                }
+                return;
+            case 'hide':
+            case 'online':
+                $status_message = array(
+                    'message_type' => $message_type,
+                    'id' => self::$user['id'],
+                );
+                Gateway::sendToAll(json_encode($status_message));
+                return;
+            case 'ping':
+                return;
+            default:
+                echo "unknown message $data";
+        }
+        //DB::close(\MyPhp\Config::$db);
+    }
+
+    /**
+     * 当用户断开连接时触发
+     * @param int $client_id 连接id
+     */
+    public static function onClose($client_id)
+    {
+        $uid = self::$user['id'];
+        $logout_message = array(
+            'message_type' => 'logout',
+            'id' => $uid
+        );
+        Gateway::sendToAll(json_encode($logout_message));
+        self::$redis->hDel('chat_room:101', $uid);
+    }
 }

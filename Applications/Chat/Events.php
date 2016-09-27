@@ -9,7 +9,7 @@ use MyPhp\Lib\DB;
 class Events
 {
     private static $redis;
-    public static function onWorkerStart(Worker $businessWorker)
+    public static function onWorkerStart($businessWorker)
     {
         self::$redis = new \Redis();
         $redis=self::$redis;

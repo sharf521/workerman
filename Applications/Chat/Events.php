@@ -11,18 +11,8 @@ class Events
     private static $redis;
     public static function onWorkerStart($businessWorker)
     {
-        self::$redis = new \Redis();
-        $redis=self::$redis;
-        $redis->pconnect('127.0.0.1', 6379);
-        $redis->hSet('chat_room:1', 'id1', json_encode(array('id'=>1,'name'=>2)));
-        $redis->hSet('chat_room:1', 'id2', json_encode(array('id'=>2,'name'=>22)));
-        $redis->hSet('chat_room:1', 'id3', json_encode(array('id'=>3,'name'=>33)));
-// Get the stored data and print it
-        $list=$redis->hGetAll('chat_room:1');
-        foreach ($list as $k=>$v){
-            echo $v."\r\n";
-        }
-        
+        self::$redis=new \Redis();
+        self::$redis->pconnect('127.0.0.1',6379);
     }
     
     /**
@@ -51,6 +41,9 @@ class Events
                );
                // 将当前链接与uid绑定
                Gateway::bindUid($client_id, $uid);
+
+               self::$redis->hSet('chat_room:101', $uid, serialize($_SESSION));
+
 
                //更新用户信息
                /*$user=$user->find($uid);
@@ -127,10 +120,12 @@ class Events
     * @param int $client_id 连接id
     */
    public static function onClose($client_id) {
+       $uid=$_SESSION['id'];
        $logout_message = array(
            'message_type' => 'logout',
-           'id'           => $_SESSION['id']
+           'id'           => $uid
        );
        Gateway::sendToAll(json_encode($logout_message));
+       self::$redis->hDel('chat_room:101', $uid);
    }
 }

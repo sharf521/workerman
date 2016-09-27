@@ -60,7 +60,7 @@ class Events
                     'id' => $uid,
                 );
                 Gateway::sendToClient($client_id, json_encode($init_message));
-/*                // 通知所有客户端添加一个好友
+                // 通知所有客户端添加一个好友
                 $reg_message = array('message_type' => 'addList', 'data' => array(
                     'type' => 'friend',
                     'username' => $message['username'],
@@ -69,7 +69,7 @@ class Events
                     'sign' => $message['sign'],
                     'groupid' => 1
                 ));
-                Gateway::sendToAll(json_encode($reg_message), null, $client_id);*/
+                Gateway::sendToAll(json_encode($reg_message), null, $client_id);
                 // 让当前客户端加入群组101
                 Gateway::joinGroup($client_id, 101);
                 return;

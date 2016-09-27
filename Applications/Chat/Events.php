@@ -8,7 +8,23 @@ use MyPhp\Lib\DB;
  */
 class Events
 {
-   /**
+    private $redis;
+    public function __construct()
+    {
+        $this->redis = new \Redis();
+        $redis=$this->redis;
+        $redis->pconnect('127.0.0.1', 6379);
+        $redis->hSet('chat_room:1', 'id1', json_encode(array('id'=>1,'name'=>2)));
+        $redis->hSet('chat_room:1', 'id2', json_encode(array('id'=>2,'name'=>22)));
+        $redis->hSet('chat_room:1', 'id3', json_encode(array('id'=>3,'name'=>33)));
+        // Get the stored data and print it
+        $list=$redis->hGetAll('chat_room:1');
+        foreach ($list as $k=>$v){
+            echo $v."\r\n";
+        }
+    }
+
+    /**
     * 当客户端发来消息时触发
     * @param int $client_id 连接id
     * @param mixed $message 具体消息

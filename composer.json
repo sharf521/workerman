@@ -1,0 +1,18 @@
+{
+  "require": {
+    "sharf/myphp": "dev-master",
+    "predis/predis": "^1.1",
+    "workerman/gateway-worker": "^3.0"
+  },
+  "repositories": {
+    "packagist": {
+      "type": "composer",
+      "url": "https://mirrors.aliyun.com/composer/"
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    }
+  }
+}

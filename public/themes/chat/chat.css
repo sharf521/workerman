@@ -1,0 +1,18 @@
+.gray_icon {
+    -webkit-filter: grayscale(100%);
+    -moz-filter: grayscale(100%);
+    -ms-filter: grayscale(100%);
+    -o-filter: grayscale(100%);
+    filter: grayscale(100%);
+    filter: gray;
+}
+
+
+.page{padding-top:10px}
+.p_bar {clear:both;padding:10px 0; text-align:center; font-size:14px; color: #0e0e0e; height: 30px; overflow: hidden;}
+.p_info { border:1px solid #dddddd; padding:4px 10px;}
+.p_bar a {text-decoration:none;padding:4px 10px; color: #0e0e0e;}
+.p_bar a:hover {background:#dddddd;border:1px solid #dddddd; border-left: 0px;text-decoration:none;}
+.p_num {background:#FFF;border:1px solid #dddddd; border-left: 0px;}
+.p_redirect {background:#FFF;border:1px solid #dddddd; border-left: 0px; padding:4px 10px;}
+.p_curpage {border:1px solid #337ab7; border-left: 0px;background:#337ab7;color:#fff; padding:4px 10px;}

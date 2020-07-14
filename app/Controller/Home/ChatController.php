@@ -3,6 +3,7 @@
 namespace App\Controller\Home;
 
 use App\Model\ChatLog;
+use App\Model\ChatUser;
 use App\Model\User;
 use App\Token;
 use System\Lib\Request;
@@ -26,6 +27,27 @@ class ChatController extends HomeController
     public function index()
     {
         $this->view('index');
+    }
+
+    public function initUser(Request $request)
+    {
+        $id   = (int)$request->post('id');
+        $user = (new ChatUser())->find($id);
+        if (!$user->is_exist) {
+            $user->id = $id;
+        }
+        $user->avatar   = $request->post('avatar');
+        $user->sign     = $request->post('sign');
+        $user->nickname = $request->post('nickname');
+        $user->save();
+        $return = array(
+            'code' => 0,
+            'user' => array(
+                'id'    => $user->id,
+                'token' => Token::createToken($user->id, 1)
+            )
+        );
+        echo json_encode($return);
     }
 
     public function getUserInfo(Request $request)

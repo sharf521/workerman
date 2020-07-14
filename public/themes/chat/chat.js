@@ -1,6 +1,21 @@
+$(function () {
+    $.post("/chat/initUser", IM.user, function (data) {
+        if (data.code == 0) {
+            var user = data.user;
+            IM.user.id = user.id;
+            IM.user.token = user.token;
+            window.localStorage.setItem('im_token',user.token);
+            connect_workerman();
+            setInterval('send_heartbeat()', 20000);
+        } else {
+            alert(data.msg);
+        }
+    }, 'json');
+});
+
 inited = false;
 function connect_workerman() {
-    socket = new WebSocket('ws://127.0.0.1:7272/?token='+IM.user.token);
+    socket = new WebSocket('ws://'+IM.ws+'/?token='+IM.user.token);
     socket.onopen = function () {
         var initStr = IM.user;
         initStr['type'] = 'init';
@@ -60,6 +75,7 @@ function initim(history_message) {
     }
     inited = true;
     layui.use('layim', function (layim) {
+        layim=layui.layim;
         console.log(layim);
         //基础配置
         layim.config({
@@ -90,6 +106,8 @@ function initim(history_message) {
             //聊天记录地址
             , chatLog: '/chat/history/'+IM.user.id+'/'
             , find:false
+            ,right:'10px'
+            ,minRight:'10px'
             , copyright: true //是否授权
             , title: 'LayChat'
         });

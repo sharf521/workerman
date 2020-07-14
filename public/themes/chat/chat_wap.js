@@ -1,6 +1,21 @@
+$(function () {
+    $.post("/chat/initUser", IM.user, function (data) {
+        if (data.code == 0) {
+            var user = data.user;
+            IM.user.id = user.id;
+            IM.user.token = user.token;
+            window.localStorage.setItem('im_token',user.token);
+            connect_workerman();
+            setInterval('send_heartbeat()', 20000);
+        } else {
+            alert(data.msg);
+        }
+    }, 'json');
+});
+
 inited = false;
 function connect_workerman() {
-    socket = new WebSocket('ws://127.0.0.1:7272/?token='+IM.user.token);
+    socket = new WebSocket('ws://'+IM.ws+'/?token='+IM.user.token);
     socket.onopen = function () {
         var initStr = IM.user;
         initStr['type'] = 'init';

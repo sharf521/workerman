@@ -1,14 +1,16 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
+    <title>LayIM移动版测试</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>layim - layui</title>
+    <script src="/themes/chat/js/jquery.min.js"></script>
+    <link rel="stylesheet" href="/plugin/layui/css/layui.mobile.css" media="all"/>
 </head>
 <body>
-<script src="/themes/chat/js/jquery.min.js"></script>
-<link rel="stylesheet" href="/plugin/layui/css/layui.css"/>
+
 <script src="/plugin/layui/layui.js"></script>
+
 <script type="text/javascript">
     IM={};
     IM.user = {};
@@ -30,6 +32,6 @@
         }, 'json');
     });
 </script>
-<script src="/themes/chat/chat.js"></script>
+<script src="/themes/chat/chat_wap.js"></script>
 </body>
 </html>

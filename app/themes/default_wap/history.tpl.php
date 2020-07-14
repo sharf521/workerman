@@ -23,7 +23,7 @@
 <script>
     var uid="<?=$uid?>";
     var data = eval(<?=$data?>);
-    layui.use(['layim','laypage'], function(){
+    layui.use(['layim'], function(){
         var layim = layui.layim;
         var html = '';
         for(var key in data){
@@ -34,32 +34,7 @@
             }
         }
         $(".layim-chat-main ul").append(html);
-        //执行一个laypage实例
-        /*layui.laypage.render({
-            elem: 'page_box'
-            ,count: '50' //数据总数，从服务端得到
-            ,jump: function(obj, first){
-                //obj包含了当前分页的所有参数，比如：
-                console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
-                console.log(obj.limit); //得到每页显示的条数
-
-                $.get(window.location.href, {page: obj.curr}, function (data) {
-                    if (data.code == 0) {
-
-                    } else {
-                        alert(data.msg);
-                    }
-                }, 'json');
-
-                //首次不执行
-                if(!first){
-                    //do something
-                }
-            }
-        });*/
-
     });
-
 </script>
 <div class="layim-chat-friend">
     <div class="layim-chat-main" style="height:100%">
@@ -68,7 +43,6 @@
         </ul>
     </div>
     <?=$page;?>
-    <div id="page_box"></div>
 </div>
 </body>
 </html>

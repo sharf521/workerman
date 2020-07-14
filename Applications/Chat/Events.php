@@ -6,6 +6,7 @@ use \GatewayWorker\Lib\Gateway;
  * 主逻辑
  * 主要是处理 onConnect onMessage onClose 三个方法
  * onConnect 和 onClose 如果不需要可以不用实现并删除
+ * @property Redis $redis
  */
 class Events
 {
@@ -21,10 +22,13 @@ class Events
     public static function onWebSocketConnect($client_id, $data)
     {
         //var_export($data);
-        if (false && !isset($data['get']['token'])) {
+        if (!isset($data['get']['token'])) {
             Gateway::closeClient($client_id);
         }
-        $id=$data['get']['id'];
+        $id=\App\Token::getUid($data['get']['token']);
+        if(!$id>0){
+            Gateway::closeClient($client_id);
+        }
     }
 
     /**
@@ -45,13 +49,10 @@ class Events
         switch ($message_type) {
             case 'init':
                 $uid = $message['id'];
+                if($uid!=\App\Token::getUid($message['token'])){
+                    return;
+                }
                 // 设置session
-//                $_SESSION = array(
-//                    'username' => $message['username'],
-//                    'avatar' => $message['avatar'],
-//                    'id' => $uid,
-//                    'sign' => $message['sign']
-//                );
                 $_SESSION['user'] = array(
                     'username' => $message['username'],
                     'avatar'   => $message['avatar'],
@@ -61,14 +62,8 @@ class Events
 
                 // 将当前链接与uid绑定
                 Gateway::bindUid($client_id, $uid);
-                self::$redis->hSet('group101', $uid, serialize($_SESSION['user']));
 
-                // 通知当前客户端初始化
-                $init_message = array(
-                    'message_type' => 'init',
-                    'id'           => $uid,
-                );
-                Gateway::sendToClient($client_id, json_encode($init_message));
+
                 // 通知所有客户端添加一个好友
                 $reg_message = array('message_type' => 'addList', 'data' => array(
                     'type'     => 'friend',
@@ -76,11 +71,42 @@ class Events
                     'avatar'   => $message['avatar'],
                     'id'       => $uid,
                     'sign'     => $message['sign'],
-                    'groupid'  => 1
+                    //'groupid'  => 0//接受端再赋值要添加的组
                 ));
                 Gateway::sendToAll(json_encode($reg_message), null, $client_id);
                 // 让当前客户端加入群组101
                 Gateway::joinGroup($client_id, 'group101');
+                self::$redis->hSet('group101', $uid, serialize($_SESSION['user']));
+
+                // redis同步在线终端
+                $uids=Gateway::getUidListByGroup('group101');
+                $list=self::$redis->hGetAll('group101');
+                $arr_online=[];
+                foreach ($list as $key=>$item){
+                    if(!array_key_exists($key,$uids)){
+                        self::$redis->hDel('group101', $key);
+                        continue;
+                    }
+                    if ($key != $uid) {
+                        $item         = unserialize($item);
+                        $u            = array(
+                            "username" => $item['username'],
+                            "id"       => $item['id'],
+                            "sign"     => $item['sign'],
+                            "avatar"   => $item['avatar'],
+                            "status"   => "online"
+                        );
+                        $arr_online[] = $u;
+                    }
+                }
+                // 通知当前客户端初始化
+                $init_message = array(
+                    'message_type' => 'init',
+                    'id'           => $uid,
+                    'online_list'  => $arr_online
+                );
+                Gateway::sendToClient($client_id, json_encode($init_message));
+
                 return;
             case 'chatMessage':
                 // 聊天消息
@@ -104,7 +130,6 @@ class Events
                 switch ($type) {
                     // 私聊
                     case 'friend':
-                        echo '__'.$to_id;
                         return Gateway::sendToUid($to_id, json_encode($chat_message));
                     // 群聊
                     case 'group':

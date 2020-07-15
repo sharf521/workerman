@@ -2,8 +2,9 @@
 
 namespace App\Controller\Home;
 
+use App\Config;
+use App\Model\AppUser;
 use App\Model\ChatLog;
-use App\Model\ChatUser;
 use App\Token;
 use System\Lib\Request;
 
@@ -21,20 +22,28 @@ class ImApiController extends HomeController
 
     public function initUser(Request $request)
     {
-        $id   = (int)$request->post('id');
-        $user = (new ChatUser())->find($id);
+        $user_id   = (int)$request->post('user_id');
+        $app_id=$request->post('app_id');
+        $user=(new AppUser())->where("user_id={$user_id} and app_id={$app_id}")->first();
         if (!$user->is_exist) {
-            $user->id = $id;
+            $user->user_id = $user_id;
+            $user->app_id = $app_id;
+            $user->avatar   = 'http://lorempixel.com/38/38/?'.$user_id;
+            $user->sign     = '';
+            $user->nickname = 'user'.$user_id;
+            $id=$user->save(true);
+        }else{
+            $id=$user->id;
         }
-        $user->avatar   = $request->post('avatar');
-        $user->sign     = $request->post('sign');
-        $user->nickname = $request->post('username');
-        $user->save();
         $return = array(
             'code' => 0,
+            'ws'   => Config::$ws_url,
             'user' => array(
-                'id'    => $user->id,
-                'token' => Token::createToken($user->id, 1)
+                'id'       => $id,
+                'avatar'   => $user->avatar,
+                'nickname' => $user->nickname,
+                'sign'     => $user->sign,
+                'token'    => Token::createToken($user->id, 1)
             )
         );
         echo json_encode($return);
@@ -43,7 +52,7 @@ class ImApiController extends HomeController
     public function getUserInfo(Request $request)
     {
         $uid  = (int)$request->get('uid');
-        $user = (new ChatUser())->find($uid);
+        $user = (new AppUser())->find($uid);
         if ($user->is_exist) {
             $return = array(
                 'code' => 0,
@@ -74,7 +83,7 @@ class ImApiController extends HomeController
         fwrite($client, json_encode($data) . "\n");
     }
 
-    public function init(ChatUser $user, Request $request)
+    public function init(AppUser $user, Request $request)
     {
         $id   = $request->id;
         $user = $user->findOrFail($id);
@@ -90,7 +99,7 @@ class ImApiController extends HomeController
     }
 
 //init
-    public function getList(ChatUser $user, Request $request)
+    public function getList(AppUser $user, Request $request)
     {
         $user_id               = (int)$request->get('uid');
         $user                  = $user->find($user_id);
@@ -161,7 +170,7 @@ class ImApiController extends HomeController
     }
 
     ////查看群员接口
-    public function getGroupMembers(ChatUser $user, Request $request)
+    public function getGroupMembers(AppUser $user, Request $request)
     {
         $id                     = $request->get('id');
         $user_id                = (int)$request->get('uid');

@@ -130,7 +130,14 @@ class Events
                 switch ($type) {
                     // 私聊
                     case 'friend':
-                        return Gateway::sendToUid($to_id, json_encode($chat_message));
+                        // 如果不在线就先存起来
+                        if (!Gateway::isUidOnline($to_id)) {
+                            // 假设有个your_store_fun函数用来保存未读消息(这个函数要自己实现)
+
+                        } else {
+                            Gateway::sendToUid($to_id, json_encode($chat_message));
+                        }
+                        return;
                     // 群聊
                     case 'group':
                         return Gateway::sendToGroup($to_id, json_encode($chat_message), $client_id);
@@ -169,7 +176,11 @@ class Events
             'message_type' => 'logout',
             'id'           => $uid
         );
-        Gateway::sendToAll(json_encode($logout_message));
-        self::$redis->hDel('group101', $uid);
+        $c_list=Gateway::getClientIdByUid($uid);
+        if(empty($c_list)){
+            //uid 的所有终端都下线
+            Gateway::sendToAll(json_encode($logout_message));
+            self::$redis->hDel('group101', $uid);
+        }
     }
 }

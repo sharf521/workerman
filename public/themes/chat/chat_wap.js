@@ -20,6 +20,7 @@ $(function () {
 
 inited = false;
 function connect_workerman() {
+    console.log('ws://'+IM.ws+'/?token='+IM.user.token);
     socket = new WebSocket('ws://'+IM.ws+'/?token='+IM.user.token);
     socket.onopen = function () {
         var initStr = IM.user;

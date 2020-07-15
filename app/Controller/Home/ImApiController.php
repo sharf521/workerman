@@ -16,24 +16,25 @@ class ImApiController extends HomeController
     {
         parent::__construct();
         $this->template = 'default';
-        $this->redis = new \Redis();
+        $this->redis    = new \Redis();
         $this->redis->connect('127.0.0.1', 6379);
     }
 
     public function initUser(Request $request)
     {
-        $user_id   = (int)$request->post('user_id');
-        $app_id=$request->post('app_id');
-        $user=(new AppUser())->where("user_id={$user_id} and app_id={$app_id}")->first();
+        $user_id = (int)$request->post('user_id');
+        $app_id  = $request->post('app_id');
+        $user    = (new AppUser())->where("user_id={$user_id} and app_id={$app_id}")->first();
         if (!$user->is_exist) {
-            $user->user_id = $user_id;
-            $user->app_id = $app_id;
-            $user->avatar   = 'http://lorempixel.com/38/38/?'.$user_id;
+            $user->user_id  = $user_id;
+            $user->app_id   = $app_id;
+            $user->avatar   = 'http://lorempixel.com/38/38/?' . $user_id;
             $user->sign     = '';
-            $user->nickname = 'user'.$user_id;
-            $id=$user->save(true);
-        }else{
-            $id=$user->id;
+            $user->nickname = 'user' . $user_id;
+            $user->openid   = $user->create($user_id, $app_id);
+            $id             = $user->save(true);
+        } else {
+            $id = $user->id;
         }
         $return = array(
             'code' => 0,
@@ -43,33 +44,9 @@ class ImApiController extends HomeController
                 'avatar'   => $user->avatar,
                 'nickname' => $user->nickname,
                 'sign'     => $user->sign,
-                'token'    => Token::createToken($user->id, 1)
+                'token'    => Token::createToken($id, 1)
             )
         );
-        echo json_encode($return);
-    }
-
-    public function getUserInfo(Request $request)
-    {
-        $uid  = (int)$request->get('uid');
-        $user = (new AppUser())->find($uid);
-        if ($user->is_exist) {
-            $return = array(
-                'code' => 0,
-                'user' => array(
-                    'id'       => $user->id,
-                    'avatar'   => $user->headimgurl,
-                    'sign'     => '',
-                    'username' => $user->nickname,
-                    'token'    => Token::createToken($user->id, 1)
-                )
-            );
-        } else {
-            $return = array(
-                'code' => 0,
-                'msg'  => 'not find user'
-            );
-        }
         echo json_encode($return);
     }
 
@@ -217,20 +194,15 @@ class ImApiController extends HomeController
     //保存发送的消息
     public function post_message(ChatLog $chatLog)
     {
-        $data                   = $_POST['data'];
-        $chatLog->type          = $data['to']['type'];
-        $chatLog->mine_id       = $data['mine']['id'];
-        $chatLog->mine_username = $data['mine']['username'];
-        $chatLog->mine_avatar   = $data['mine']['avatar'];
-        $chatLog->content       = $data['mine']['content'];
-        $chatLog->to_id         = $data['to']['id'];
+        $data             = $_POST['data'];
+        $chatLog->type    = $data['to']['type'];
+        $chatLog->mine_id = $data['mine']['id'];
+        $chatLog->content = $data['mine']['content'];
+        $chatLog->to_id   = $data['to']['id'];
         if ($chatLog->type == 'group') {
             $chatLog->to_id       = str_replace('group', '', $chatLog->to_id);
             $chatLog->to_username = $data['to']['groupname'];
-        } else {
-            $chatLog->to_username = $data['to']['username'];
         }
-        $chatLog->to_avatar = $data['to']['avatar'];
         $chatLog->save();
     }
 
@@ -250,20 +222,21 @@ class ImApiController extends HomeController
         $arr_arr = array();
         krsort($result['list']);
         foreach ($result['list'] as $row) {
-            $arr = array(
+            $user = (new AppUser())->find($row->mine_id);
+            $arr  = array(
                 'id'         => $row->mine_id,
-                'username'   => $row->mine_username,
-                'avatar'     => $row->mine_avatar,
+                'username'   => $user->nickname,
+                'avatar'     => $user->avatar,
                 'type'       => $row->type,
                 'content'    => $row->content,
                 'created_at' => $row->created_at
             );
             array_push($arr_arr, $arr);
         }
-        $data['uid']  = $user_id;
-        $data['data'] = json_encode($arr_arr);
-        $data['page'] = $result['page'];
-        $data['total']=$result['total'];
+        $data['uid']   = $user_id;
+        $data['data']  = json_encode($arr_arr);
+        $data['page']  = $result['page'];
+        $data['total'] = $result['total'];
         $this->view('history', $data);
     }
 

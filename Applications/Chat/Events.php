@@ -63,7 +63,6 @@ class Events
                 // 将当前链接与uid绑定
                 Gateway::bindUid($client_id, $uid);
 
-
                 // 通知所有客户端添加一个好友
                 $reg_message = array('message_type' => 'addList', 'data' => array(
                     'type'     => 'friend',

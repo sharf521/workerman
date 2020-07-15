@@ -54,7 +54,7 @@ function connect_workerman() {
                 layui.layim.setFriendStatus(msg.id, 'online');
                 return;
         }
-    }
+    };
     socket.onclose = connect_workerman;
 }
 

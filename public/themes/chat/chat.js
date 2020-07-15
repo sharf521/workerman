@@ -1,5 +1,5 @@
 $(function () {
-    $.post("/chat/initUser", IM.user, function (data) {
+    $.post("/imApi/initUser", IM.user, function (data) {
         if (data.code == 0) {
             var user = data.user;
             IM.user.id = user.id;
@@ -81,11 +81,11 @@ function initim(history_message) {
         layim.config({
             //初始化接口
             init: {
-                url: '/chat/getList/?uid='+IM.user.id
+                url: '/imApi/getList/?uid='+IM.user.id
             }
             //查看群员接口
             , members: {
-                url: '/chat/getGroupMembers/?uid='+IM.user.id
+                url: '/imApi/getGroupMembers/?uid='+IM.user.id
             }
             // 上传图片
             , uploadImage: {
@@ -104,16 +104,15 @@ function initim(history_message) {
                 ,icon: '&#xe64e;'
             }]
             //聊天记录地址
-            , chatLog: '/chat/history/'+IM.user.id+'/'
+            , chatLog: '/imApi/history/'+IM.user.id+'/'
             , find:false
-            ,right:'10px'
-            ,minRight:'10px'
+            ,right:'20px'
             , copyright: true //是否授权
             , title: 'LayChat'
         });
         //监听发送消息
         layim.on('sendMessage', function (data) {
-            $.post("/chat/post_message/", {data: data});
+            $.post("/imApi/post_message/", {data: data});
             socket.send(JSON.stringify({type: 'chatMessage',data:data}));
             console.log("sendMessage:" + JSON.stringify({type: 'chatMessage',data:data}));
         });

@@ -49,7 +49,7 @@ class Events
         switch ($message_type) {
             case 'init':
                 $uid = $message['id'];
-                if($uid!=\App\Token::getUid($message['token'])){
+                if(empty($uid) || $uid!=\App\Token::getUid($message['token'])){
                     return;
                 }
                 // 设置session

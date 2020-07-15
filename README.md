@@ -11,9 +11,17 @@ workerman-chat
                 rewrite ^/(.*)$ /index.php/$1 last;
             }            
         }     
+        
         location /pictureApi/ {
-            proxy_pass http://picture.test.cn:8080/home.php/;
-        }	
+                    proxy_pass http://picture.test.cn:8080/home.php/;
+                }
+                location /IM_URL/ {
+                    proxy_pass http://chat1.test.cn:8000/;
+                }
+        
+                location /imApi/ {
+                    proxy_pass http://chat1.test.cn:8000/imApi/;
+                }
         location ~ \.php  {
             fastcgi_pass   192.168.0.25:9010;            
             fastcgi_index  index.php;

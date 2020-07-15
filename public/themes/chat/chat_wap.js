@@ -1,5 +1,5 @@
 $(function () {
-    $.post("/chat/initUser", IM.user, function (data) {
+    $.post("/imApi/initUser", IM.user, function (data) {
         if (data.code == 0) {
             var user = data.user;
             IM.user.id = user.id;
@@ -136,7 +136,7 @@ function initim(history_message) {
         });
         //监听发送消息
         layim.on('sendMessage', function (data) {
-            $.post("/chat/post_message/", {data: data});
+            $.post("/imApi/post_message/", {data: data});
             socket.send(JSON.stringify({type: 'chatMessage',data:data}));
             console.log("sendMessage:" + JSON.stringify({type: 'chatMessage',data:data}));
         });

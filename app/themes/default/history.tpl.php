@@ -4,9 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <title>聊天历史记录</title>
-    <script src="/themes/chat/js/jquery.min.js"></script>
-    <link rel="stylesheet" href="/plugin/layui/css/layui.css" />
-    <script src="/plugin/layui/layui.js"></script>
+    <script src="/IM_URL/themes/chat/js/jquery.min.js"></script>
+    <link rel="stylesheet" href="/IM_URL/plugin/layui/css/layui.css" />
+    <script src="/IM_URL/plugin/layui/layui.js"></script>
     <style>
         body{overflow-x: hidden}
         .page{padding-top:10px}

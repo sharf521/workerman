@@ -28,6 +28,8 @@ class ImApiController extends HomeController
         $nickname = $request->post('nickname');
         if (empty($avatar)) {
             $avatar   = 'http://lorempixel.com/38/38/?' . $user_id;
+        }
+        if (empty($nickname)) {
             $nickname = 'user' . $user_id;
         }
         $user           = (new AppUser())->where("user_id='{$user_id}' and app_id={$app_id}")->first();

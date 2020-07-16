@@ -33,26 +33,17 @@ function connect_workerman() {
             case 'init':
                 initLayIM();
                 return;
-            case 'addList':
-                if (IM.user.id != msg.data.id && $('.layim-list-friend').find('.layim-friend' + msg.data.id).length==0) {
-                    msg.data.groupid=0;
-                    layui.layim.addList(msg.data);
-                }
-                layui.layim.setFriendStatus(msg.data.id, 'online');
-                return;
             case 'chatMessage':
                 if (IM.user.id !== msg.data.id) {
                     layui.layim.getMessage(msg.data);
                 }
                 return;
             case 'hide':
-                layui.layim.setFriendStatus(msg.id, 'offline');
-                break;
             case 'logout':
-                layui.layim.removeList({id: msg.id, type: 'friend'});
-                break;
+                layui.layer.msg(msg.id+'offline');
+                return;
             case 'online':
-                layui.layim.setFriendStatus(msg.id, 'online');
+                layui.layer.msg(msg.id+'online');
                 return;
         }
     };
@@ -66,10 +57,6 @@ function send_heartbeat() {
     }
 }
 
-function add_history_tip() {
-    $('.layim-chat-main ul').append('<li><div class="history-tip">以上是历史消息</div></li>');
-}
-
 // 初始化聊天窗口
 function initLayIM() {
     if (IM.inited) {
@@ -81,21 +68,15 @@ function initLayIM() {
         console.log(layim);
         //基础配置
         layim.config({
-            //初始化接口
             init: {
-                url: '/imApi/getList/?uid='+IM.user.id
-            }
-            //查看群员接口
-            , members: {
-                url: '/imApi/getGroupMembers/?uid='+IM.user.id
-            }
-            // 上传图片
-            , uploadImage: {
-                url: '/pictureApi/memberApi/upload/save?type=chat&token='+window.localStorage.getItem('im_token')
-            }
-            // 上传文件
-            , uploadFile: {
-                url: '/pictureApi/memberApi/upload/save?type=chat&token='+window.localStorage.getItem('im_token')
+                //配置客户信息
+                mine: {
+                    "username": IM.user.username //我的昵称
+                    ,"id": IM.user.id //我的ID
+                    ,"status": "online" //在线状态 online：在线、hide：隐身
+                    ,"sign": "在深邃的编码世界，做一枚轻盈的纸飞机" //我的签名
+                    ,"avatar":IM.user.avatar
+                }
             }
             ,isAudio: true //开启聊天工具栏音频
             ,isVideo: true //开启聊天工具栏视频
@@ -107,20 +88,14 @@ function initLayIM() {
             }]
             //聊天记录地址
             , chatLog: '/imApi/history/'+IM.user.id+'/'
-            , find:false
-            , right:'20px'
-            , copyright: true //是否授权
-            , title: 'LayChat'
+            //开启客服模式
+            ,brief: true
         });
         //监听发送消息
         layim.on('sendMessage', function (data) {
             //$.post("/imApi/post_message/", {data: data});
             socket.send(JSON.stringify({type: 'chatMessage',data:data}));
             console.log("sendMessage:" + JSON.stringify({type: 'chatMessage',data:data}));
-        });
-        layim.on('sign', function(value){
-            console.log(value); //获得新的签名
-            $.post("/imApi/changSign/", {uid:IM.user.id,sign: value});
         });
         //监听在线状态的切换事件
         layim.on('online', function (data) {

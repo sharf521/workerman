@@ -18,4 +18,9 @@ class ChatController extends HomeController
     {
         $this->view('index');
     }
+
+    public function kefu()
+    {
+        $this->view('kefu');
+    }
 }

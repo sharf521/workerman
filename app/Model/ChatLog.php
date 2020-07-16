@@ -16,4 +16,12 @@ class ChatLog extends Model
     {
         parent::__construct();
     }
+
+    /**
+     * @return AppUser
+     */
+    public function AppUser()
+    {
+        return (new AppUser())->find($this->mine_id);
+    }
 }

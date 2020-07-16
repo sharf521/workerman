@@ -18,7 +18,7 @@ $(function () {
     }, 'json');
 });
 
-inited = false;
+IM.inited = false;
 function connect_workerman() {
     socket = new WebSocket('ws://'+IM.ws+'/?token='+IM.user.token);
     socket.onopen = function () {
@@ -32,10 +32,10 @@ function connect_workerman() {
         var msg = JSON.parse(res.data);
         switch (msg.message_type) {
             case 'init':
-                initim([]);
+                initLayIM();
                 return;
             case 'addList':
-                if (IM.user.id != msg.data.id) {
+                if (IM.user.id != msg.data.id && $('.layim-friend' + msg.data.id).length == 0) {
                     msg.data.groupid=0;
                     layui.layim.addList(msg.data);
                 }
@@ -70,15 +70,11 @@ function add_history_tip() {
 }
 
 // 初始化聊天窗口
-function initim(history_message) {
-    if (inited) {
-        // 离线消息
-        for (var key in history_message) {
-            layui.layim.getMessage(JSON.parse(history_message[key]));
-        }
+function initLayIM() {
+    if (IM.inited) {
         return;
     }
-    inited = true;
+    IM.inited = true;
     layui.use('layim', function (layim) {
         layim=layui.layim;
         console.log(layim);
@@ -121,6 +117,10 @@ function initim(history_message) {
             socket.send(JSON.stringify({type: 'chatMessage',data:data}));
             console.log("sendMessage:" + JSON.stringify({type: 'chatMessage',data:data}));
         });
+        layim.on('sign', function(value){
+            console.log(value); //获得新的签名
+            $.post("/imApi/changSign/", {uid:IM.user.id,sign: value});
+        });
         //监听在线状态的切换事件
         layim.on('online', function (data) {
             socket.send(JSON.stringify({type: data}));
@@ -140,9 +140,17 @@ function initim(history_message) {
         layim.on('ready', function (res) {
             console.log('ready：'+res);
             // 离线消息
-            for (var key in history_message) {
-                layim.getMessage(JSON.parse(history_message[key]));
-            }
+            $.post("/imApi/getOffLineMsg", {uid:IM.user.id}, function (data) {
+                if (data.code == 0) {
+                    var history_message=data.data;
+                    for (var key in history_message) {
+                        console.log(history_message[key]);
+                        layui.layim.getMessage(history_message[key]);
+                    }
+                } else {
+                    alert(data.msg);
+                }
+            }, 'json');
         });
     });
 }

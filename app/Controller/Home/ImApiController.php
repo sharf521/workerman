@@ -31,7 +31,7 @@ class ImApiController extends HomeController
             $user->avatar   = 'http://lorempixel.com/38/38/?' . $user_id;
             $user->sign     = '';
             $user->nickname = 'user' . $user_id;
-            $user->openid   = $user->create($user_id, $app_id);
+            $user->openid   = $user->createOpenId($user_id, $app_id);
             $id             = $user->save(true);
         } else {
             $id = $user->id;
@@ -88,7 +88,7 @@ class ImApiController extends HomeController
         $array['data']['mine'] = array(
             "username" => $user->nickname,
             "id"       => $user->id,
-            "sign"     => 'hello today!',
+            "sign"     => $user->sign,
             "avatar"   => $user->avatar,
             "status"   => "online"
         );
@@ -138,7 +138,7 @@ class ImApiController extends HomeController
         //群组
         $group                    = array(
             "groupname" => "在线群",
-            "id"        => "group101",
+            "id"        => "101",
             "avatar"    => "http://tp2.sinaimg.cn/2211874245/180/40050524279/0"
         );
         $array['data']['group'][] = $group;
@@ -150,8 +150,8 @@ class ImApiController extends HomeController
     public function getGroupMembers(AppUser $user, Request $request)
     {
         $id                     = $request->get('id');
-        $user_id                = (int)$request->get('uid');
-        $user                   = $user->find($user_id);
+        $uid                = (int)$request->get('uid');
+        $user                   = $user->find($uid);
         $array                  = array(
             'code' => 0,
             'msg'  => '',
@@ -200,10 +200,54 @@ class ImApiController extends HomeController
         $chatLog->content = $data['mine']['content'];
         $chatLog->to_id   = $data['to']['id'];
         if ($chatLog->type == 'group') {
-            $chatLog->to_id       = str_replace('group', '', $chatLog->to_id);
+            $chatLog->to_id       = $chatLog->to_id;
             $chatLog->to_username = $data['to']['groupname'];
         }
         $chatLog->save();
+    }
+
+    public function changSign(Request $request)
+    {
+        $uid=$request->post('uid');
+        $sign=$request->post('sign');
+        $user=(new AppUser())->find($uid);
+        var_dump($user);
+        if($user->is_exist){
+            $user->sign=$sign;
+            $user->save();
+        }
+        echo 'ok';
+    }
+
+    public function getOffLineMsg(ChatLog $chatLog,Request $request)
+    {
+        $uid      = $request->post('uid');
+        $result = $chatLog->where("(type='friend' and to_id='{$uid}') or (type='group' and to_id='101' and mine_id!={$uid})")->orderBy('id desc')->limit('0,5')->get();
+        krsort($result['list']);
+        $list=array();
+        foreach ($result as $row){
+            if($row instanceof ChatLog){
+                $user = $row->AppUser();
+                $arr=array(
+                    'username'   => $user->nickname,
+                    'avatar'     => $user->avatar,
+                    'id'        => $row->type == 'friend' ? $row->mine_id : $row->to_id,//消息的来源ID（如果是私聊，则是用户id，如果是群聊，则是群组id）
+                    'type'      => $row->type,
+                    'content'    => $row->content,
+                    'fromid'    => $row->type == 'friend' ? $row->mine_id : $row->to_id,//消息的发送者id（比如群组中的某个消息发送者）
+                    'mine'      => false, //是否我发送的消息，如果为true，则会显示在右方
+                    'cid'       => 0,//消息id，可不传。除非你要对消息进行一些操作（如撤回）
+                    'timestamp' => time() * 1000
+                );
+                $list[]=$arr;
+            }
+        }
+        $array = array(
+            'code' => 0,
+            'msg'  => '',
+            'data' => $list
+        );
+        echo json_encode($array);
     }
 
     public function history(ChatLog $chatLog, Request $request)
@@ -212,7 +256,6 @@ class ImApiController extends HomeController
         $type    = $request->get('type');
         $user_id = (int)$request->get(2);
         if ($type == 'group') {
-            $id     = str_replace('group', '', $id);
             $result = $chatLog->where("type='{$type}' and to_id='{$id}'")->orderBy('id desc')->pager($_GET['page'], 10);
         } else {
             $id     = (int)$id;
@@ -222,16 +265,18 @@ class ImApiController extends HomeController
         $arr_arr = array();
         krsort($result['list']);
         foreach ($result['list'] as $row) {
-            $user = (new AppUser())->find($row->mine_id);
-            $arr  = array(
-                'id'         => $row->mine_id,
-                'username'   => $user->nickname,
-                'avatar'     => $user->avatar,
-                'type'       => $row->type,
-                'content'    => $row->content,
-                'created_at' => $row->created_at
-            );
-            array_push($arr_arr, $arr);
+            if($row instanceof ChatLog){
+                $user = $row->AppUser();
+                $arr  = array(
+                    'id'         => $row->mine_id,
+                    'username'   => $user->nickname,
+                    'avatar'     => $user->avatar,
+                    'type'       => $row->type,
+                    'content'    => $row->content,
+                    'created_at' => $row->created_at
+                );
+                array_push($arr_arr, $arr);
+            }
         }
         $data['uid']   = $user_id;
         $data['data']  = json_encode($arr_arr);

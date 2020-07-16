@@ -4,6 +4,11 @@
     <title>LayIM移动版测试</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <style>
+        /*
+        body .layim-title{display: none;}
+        body .layim-chat-main, body .layim-content, body .layui-layim{top: 0}*/
+    </style>
 </head>
 <body>
 <script src="/themes/chat/js/jquery.min.js"></script>

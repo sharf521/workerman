@@ -18,7 +18,7 @@ $(function () {
     }, 'json');
 });
 
-inited = false;
+IM.inited = false;
 function connect_workerman() {
     console.log('ws://'+IM.ws+'/?token='+IM.user.token);
     socket = new WebSocket('ws://'+IM.ws+'/?token='+IM.user.token);
@@ -33,11 +33,11 @@ function connect_workerman() {
         var msg = JSON.parse(res.data);
         switch (msg.message_type) {
             case 'init':
-                initim([]);
+                initLayIM();
                 IM.online_list=msg.online_list;
                 return;
             case 'addList':
-                if (IM.user.id != msg.data.id) {
+                if (IM.user.id != msg.data.id && $('.layim-friend' + msg.data.id).length == 0) {
                     msg.data.groupid=0;
                     layui.mobile.layim.addList(msg.data);
                 }
@@ -68,15 +68,11 @@ function send_heartbeat() {
 }
 
 // 初始化聊天窗口
-function initim(history_message) {
-    if (inited) {
-        // 离线消息
-        for (var key in history_message) {
-            layui.layim.getMessage(JSON.parse(history_message[key]));
-        }
+function initLayIM() {
+    if (IM.inited) {
         return;
     }
-    inited = true;
+    IM.inited = true;
     layui.use('mobile', function () {
         var mobile = layui.mobile
             ,layim = mobile.layim
@@ -109,7 +105,7 @@ function initim(history_message) {
                 }]
                 ,"group": [{
                     "groupname": "在线群"
-                    ,"id": "group101"
+                    ,"id": "101"
                     ,"avatar": "http://tp2.sinaimg.cn/2211874245/180/40050524279/0"
                 }]
             }
@@ -209,13 +205,17 @@ function initim(history_message) {
             }
         });
 
-        //layim建立就绪
-        layim.on('ready', function (res) {
-            console.log('ready：'+res);
-            // 离线消息
-            for (var key in history_message) {
-                layim.getMessage(JSON.parse(history_message[key]));
+        // 离线消息
+        $.post("/imApi/getOffLineMsg", {uid:IM.user.id}, function (data) {
+            if (data.code == 0) {
+                var history_message=data.data;
+                for (var key in history_message) {
+                    console.log(history_message[key]);
+                    layim.getMessage(history_message[key]);
+                }
+            } else {
+                alert(data.msg);
             }
-        });
+        }, 'json');
     });
 }

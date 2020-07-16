@@ -113,7 +113,7 @@ function initLayIM() {
         });
         //监听发送消息
         layim.on('sendMessage', function (data) {
-            $.post("/imApi/post_message/", {data: data});
+            //$.post("/imApi/post_message/", {data: data});
             socket.send(JSON.stringify({type: 'chatMessage',data:data}));
             console.log("sendMessage:" + JSON.stringify({type: 'chatMessage',data:data}));
         });

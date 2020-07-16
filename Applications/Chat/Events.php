@@ -2,6 +2,11 @@
 
 use \GatewayWorker\Lib\Gateway;
 
+define('MyPHP_KEY', 'kee__ewk__ss__sk');
+define('ROOT', __DIR__.'/../..');
+define('DB_CONFIG', \App\Config::$db1);
+define('DB_CONFIG_FIX', \App\Config::$db1['dbfix']);
+
 /**
  * 主逻辑
  * 主要是处理 onConnect onMessage onClose 三个方法
@@ -38,9 +43,6 @@ class Events
      */
     public static function onMessage($client_id, $data)
     {
-        //DB::instance(\MyPhp\Config::$db);
-        //$user=new \MyPhp\Model\User();
-
         $message      = json_decode($data, true);
         $message_type = $message['type'];
 //       if($message_type!='ping'){
@@ -74,7 +76,7 @@ class Events
                 ));
                 Gateway::sendToAll(json_encode($reg_message), null, $client_id);
                 // 让当前客户端加入群组101
-                Gateway::joinGroup($client_id, 'group101');
+                Gateway::joinGroup($client_id, 'group:101');
                 self::$redis->hSet('group101', $uid, serialize($_SESSION['user']));
 
                 // redis同步在线终端
@@ -112,6 +114,7 @@ class Events
                 $type  = $message['data']['to']['type'];
                 $from_id=$message['data']['mine']['id'];
                 $to_id = $message['data']['to']['id'];
+                $content=htmlspecialchars($message['data']['mine']['content']);
                 $chat_message = array(
                     'message_type' => 'chatMessage',
                     'data'         => array(
@@ -119,28 +122,36 @@ class Events
                         'avatar'    => $message['data']['mine']['avatar'],
                         'id'        => $type == 'friend' ? $from_id : $to_id,//消息的来源ID（如果是私聊，则是用户id，如果是群聊，则是群组id）
                         'type'      => $type,
-                        'content'   => htmlspecialchars($message['data']['mine']['content']),
+                        'content'   => $content,
                         'fromid'    => $message['data']['mine']['id'],//消息的发送者id（比如群组中的某个消息发送者）
                         'mine'      => false, //是否我发送的消息，如果为true，则会显示在右方
                         'cid'       => 0,//消息id，可不传。除非你要对消息进行一些操作（如撤回）
                         'timestamp' => time() * 1000
                     )
                 );
+
+                $chatLog=(new \App\Model\ChatLog());
+                $chatLog->type    = $type;
+                $chatLog->mine_id = $from_id;
+                $chatLog->content = $content;
+                $chatLog->to_id   = $to_id;
                 switch ($type) {
                     // 私聊
                     case 'friend':
                         // 如果不在线就先存起来
                         if (!Gateway::isUidOnline($to_id)) {
-                            // 假设有个your_store_fun函数用来保存未读消息(这个函数要自己实现)
-
+                            $chatLog->is_send=0;
                         } else {
                             Gateway::sendToUid($to_id, json_encode($chat_message));
+                            $chatLog->is_send=1;
                         }
-                        return;
+                        break;
                     // 群聊
                     case 'group':
-                        return Gateway::sendToGroup($to_id, json_encode($chat_message), $client_id);
+                        Gateway::sendToGroup("group:{$to_id}", json_encode($chat_message), $client_id);
+                        break;
                 }
+                $chatLog->save();
                 return;
             case 'hide':
             case 'online':

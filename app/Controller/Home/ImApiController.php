@@ -22,9 +22,9 @@ class ImApiController extends HomeController
 
     public function initUser(Request $request)
     {
-        $user_id = (int)$request->post('user_id');
-        $app_id  = $request->post('app_id');
-        $user    = (new AppUser())->where("user_id={$user_id} and app_id={$app_id}")->first();
+        $user_id = $request->post('user_id');
+        $app_id  = (int)$request->post('app_id');
+        $user    = (new AppUser())->where("user_id='{$user_id}' and app_id={$app_id}")->first();
         if (!$user->is_exist) {
             $user->user_id  = $user_id;
             $user->app_id   = $app_id;
@@ -199,10 +199,6 @@ class ImApiController extends HomeController
         $chatLog->mine_id = $data['mine']['id'];
         $chatLog->content = $data['mine']['content'];
         $chatLog->to_id   = $data['to']['id'];
-        if ($chatLog->type == 'group') {
-            $chatLog->to_id       = $chatLog->to_id;
-            $chatLog->to_username = $data['to']['groupname'];
-        }
         $chatLog->save();
     }
 
@@ -222,8 +218,9 @@ class ImApiController extends HomeController
     public function getOffLineMsg(ChatLog $chatLog,Request $request)
     {
         $uid      = $request->post('uid');
-        $result = $chatLog->where("(type='friend' and to_id='{$uid}') or (type='group' and to_id='101' and mine_id!={$uid})")->orderBy('id desc')->limit('0,5')->get();
-        krsort($result['list']);
+        //"(type='friend' and to_id='{$uid}') or (type='group' and to_id='101' and mine_id!={$uid})"
+        $result = $chatLog->where("(type='friend' and to_id='{$uid}' and is_send=0)")->orderBy('id desc')->limit('0,99')->get();
+        krsort($result);
         $list=array();
         foreach ($result as $row){
             if($row instanceof ChatLog){
@@ -240,6 +237,8 @@ class ImApiController extends HomeController
                     'timestamp' => time() * 1000
                 );
                 $list[]=$arr;
+                $row->is_send=1;
+                $row->save();
             }
         }
         $array = array(

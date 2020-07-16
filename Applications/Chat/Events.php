@@ -77,15 +77,15 @@ class Events
                 Gateway::sendToAll(json_encode($reg_message), null, $client_id);
                 // 让当前客户端加入群组101
                 Gateway::joinGroup($client_id, 'group:101');
-                self::$redis->hSet('group101', $uid, serialize($_SESSION['user']));
+                self::$redis->hSet('group:101', $uid, serialize($_SESSION['user']));
 
                 // redis同步在线终端
-                $uids=Gateway::getUidListByGroup('group101');
-                $list=self::$redis->hGetAll('group101');
+                $uids=Gateway::getUidListByGroup('group:101');
+                $list=self::$redis->hGetAll('group:101');
                 $arr_online=[];
                 foreach ($list as $key=>$item){
                     if(!array_key_exists($key,$uids)){
-                        self::$redis->hDel('group101', $key);
+                        self::$redis->hDel('group:101', $key);
                         continue;
                     }
                     if ($key != $uid) {
@@ -190,7 +190,7 @@ class Events
         if(empty($c_list)){
             //uid 的所有终端都下线
             Gateway::sendToAll(json_encode($logout_message));
-            self::$redis->hDel('group101', $uid);
+            self::$redis->hDel('group:101', $uid);
         }
     }
 }

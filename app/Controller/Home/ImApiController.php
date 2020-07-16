@@ -99,7 +99,7 @@ class ImApiController extends HomeController
             "list"      => array()
         );
         $arr_online  = array();
-        $list        = $this->redis->hGetAll('group101');
+        $list        = $this->redis->hGetAll('group:101');
         foreach ($list as $key => $item) {
             if ($key != $user_id) {
                 $item         = unserialize($item);
@@ -174,7 +174,7 @@ class ImApiController extends HomeController
                     );
                     array_push($array['data']['list'], $u);
                 }*/
-        $list = $this->redis->hGetAll('group101');
+        $list = $this->redis->hGetAll('group:101');
         foreach ($list as $key => $item) {
             $item                    = unserialize($item);
             $u                       = array(

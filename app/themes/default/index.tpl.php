@@ -13,6 +13,9 @@
     IM={};
     IM.user_id = '<?=$_GET['id']?>';
     IM.app_id = '10';
+    IM.user = {};
+    IM.user.avatar ='';
+    IM.user.username = '';
 </script>
 <script src="/themes/chat/chat.js"></script>
 </body>

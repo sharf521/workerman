@@ -22,18 +22,25 @@ class ImApiController extends HomeController
 
     public function initUser(Request $request)
     {
-        $user_id = $request->post('user_id');
-        $app_id  = (int)$request->post('app_id');
-        $user    = (new AppUser())->where("user_id='{$user_id}' and app_id={$app_id}")->first();
+        $user_id  = $request->post('user_id');
+        $app_id   = (int)$request->post('app_id');
+        $avatar   = $request->post('avatar');
+        $nickname = $request->post('nickname');
+        if (empty($avatar)) {
+            $avatar   = 'http://lorempixel.com/38/38/?' . $user_id;
+            $nickname = 'user' . $user_id;
+        }
+        $user           = (new AppUser())->where("user_id='{$user_id}' and app_id={$app_id}")->first();
+        $user->avatar   = $avatar;
+        $user->nickname = $nickname;
         if (!$user->is_exist) {
-            $user->user_id  = $user_id;
-            $user->app_id   = $app_id;
-            $user->avatar   = 'http://lorempixel.com/38/38/?' . $user_id;
-            $user->sign     = '';
-            $user->nickname = 'user' . $user_id;
-            $user->openid   = $user->createOpenId($user_id, $app_id);
-            $id             = $user->save(true);
+            $user->user_id = $user_id;
+            $user->app_id  = $app_id;
+            $user->sign    = '';
+            $user->openid  = $user->createOpenId($user_id, $app_id);
+            $id            = $user->save(true);
         } else {
+            $user->save();
             $id = $user->id;
         }
         $return = array(

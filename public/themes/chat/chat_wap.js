@@ -1,9 +1,8 @@
 $(function () {
-    $.post("/imApi/initUser", {user_id:IM.user_id,app_id:IM.app_id}, function (data) {
+    $.post("/imApi/initUser", {user_id:IM.user_id,app_id:IM.app_id,nickname:IM.user.username,avatar:IM.user.avatar}, function (data) {
         if (data.code == 0) {
             IM.ws=data.ws;
             var user = data.user;
-            IM.user = {};
             IM.user.id = user.id;
             IM.user.token = user.token;
             IM.user.avatar = user.avatar;

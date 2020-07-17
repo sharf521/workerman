@@ -219,19 +219,21 @@ function initLayIM() {
                             ,data: res
                         });
                     }
-                    laypage.render({
-                        elem: 'pages'
-                        ,count: res.total
-                        ,curr:curr
-                        ,limit:10
-                        ,layout:['page']
-                        ,jump: function(obj, first){
-                            //首次不执行
-                            if(!first){
-                                myChatLog(obj.curr);
+                    if (res.total > 10) {
+                        laypage.render({
+                            elem: 'pages'
+                            , count: res.total
+                            , curr: curr
+                            , limit: 10
+                            , layout: ['page']
+                            , jump: function (obj, first) {
+                                //首次不执行
+                                if (!first) {
+                                    myChatLog(obj.curr);
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
                 },'json');
             }
         });

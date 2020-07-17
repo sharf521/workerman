@@ -76,10 +76,10 @@ function connect_workerman() {
                 return;
             case 'hide':
             case 'logout':
-                IM.setFriendStatus(msg.data.id,'offline');
+                IM.setFriendStatus(msg.id,'offline');
                 return;
             case 'online':
-                IM.setFriendStatus(msg.data.id,'online');
+                IM.setFriendStatus(msg.id,'online');
                 return;
         }
     };

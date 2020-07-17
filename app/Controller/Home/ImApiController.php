@@ -183,7 +183,7 @@ class ImApiController extends HomeController
                     );
                     array_push($array['data']['list'], $u);
                 }*/
-        $list = $this->redis->hGetAll('group:101');
+        $list = $this->redis->hGetAll("group:{$id}");
         foreach ($list as $key => $item) {
             $item                    = unserialize($item);
             $u                       = array(

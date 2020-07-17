@@ -4,9 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <title>layim - layui</title>
+
 </head>
 <body>
-
+<style>
+    .layui-layim-close{display: none}
+    .layim-list-gray{-webkit-filter: grayscale(100%);  -ms-filter: grayscale(100%); filter: grayscale(100%); filter: gray;}
+</style>
 <input type="button" onclick="open1()" value="客服1">
 <input type="button" onclick="open2()" value="客服2">
 
@@ -20,6 +24,7 @@
     IM.user = {};
     IM.user.avatar ='';
     IM.user.username = '访客';
+    IM.serviceIds=[1,2];
     function open1() {
         //自定义会话
         layui.layim.chat({

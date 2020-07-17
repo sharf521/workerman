@@ -32,8 +32,8 @@ function connect_workerman() {
         var msg = JSON.parse(res.data);
         switch (msg.message_type) {
             case 'init':
-                initLayIM();
                 IM.online_list=msg.online_list;
+                initLayIM();
                 return;
             case 'addList':
                 if (IM.user.id != msg.data.id && $('.layim-list-friend').find('.layim-friend' + msg.data.id).length==0) {
@@ -51,6 +51,7 @@ function connect_workerman() {
                 layui.mobile.layim.setFriendStatus(msg.id, 'offline'); //设置指定好友在线，即头像置灰
                 return;
             case 'logout':
+                layui.mobile.layim.setFriendStatus(msg.id, 'offline'); //设置指定好友在线，即头像置灰
                 layui.mobile.layim.removeList({id: msg.id, type: 'friend'});
                 return;
             case 'online':

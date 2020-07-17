@@ -49,6 +49,7 @@ function connect_workerman() {
                 layui.layim.setFriendStatus(msg.id, 'offline');
                 break;
             case 'logout':
+                layui.layim.setFriendStatus(msg.id, 'offline');
                 layui.layim.removeList({id: msg.id, type: 'friend'});
                 break;
             case 'online':
@@ -129,7 +130,7 @@ function initLayIM() {
         //监听自定义工具栏点击，以添加代码为例
         layim.on('tool(code)', function(insert){
             layer.prompt({
-                title: '插入代码 - 工具栏扩展示例'
+                title: '插入代码'
                 ,formType: 2
                 ,shade: 0
             }, function(text, index){

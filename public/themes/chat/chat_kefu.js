@@ -23,6 +23,7 @@ function connect_workerman() {
     socket.onopen = function () {
         var initStr = IM.user;
         initStr['type'] = 'init';
+        initStr['serviceIds']=IM.serviceIds;
         socket.send(JSON.stringify(initStr));
         console.log("onopen:" + JSON.stringify(initStr));
     };
@@ -31,7 +32,11 @@ function connect_workerman() {
         var msg = JSON.parse(res.data);
         switch (msg.message_type) {
             case 'init':
+                IM.online_list=msg.online_list;
                 initLayIM();
+                return;
+            case 'addList':
+                layui.layim.setFriendStatus(msg.data.id, 'online');
                 return;
             case 'chatMessage':
                 if (IM.user.id !== msg.data.id) {
@@ -41,9 +46,11 @@ function connect_workerman() {
             case 'hide':
             case 'logout':
                 layui.layer.msg(msg.id+'offline');
+                layui.layim.setFriendStatus(msg.id, 'offline');
                 return;
             case 'online':
                 layui.layer.msg(msg.id+'online');
+                layui.layim.setFriendStatus(msg.id, 'online');
                 return;
         }
     };
@@ -89,7 +96,8 @@ function initLayIM() {
             //聊天记录地址
             , chatLog: '/imApi/history/'+IM.user.id+'/'
             //开启客服模式
-            ,brief: true
+            ,min:true
+            ,brief: false
         });
         //监听发送消息
         layim.on('sendMessage', function (data) {
@@ -104,7 +112,7 @@ function initLayIM() {
         //监听自定义工具栏点击，以添加代码为例
         layim.on('tool(code)', function(insert){
             layer.prompt({
-                title: '插入代码 - 工具栏扩展示例'
+                title: '插入代码'
                 ,formType: 2
                 ,shade: 0
             }, function(text, index){
@@ -127,6 +135,13 @@ function initLayIM() {
                     alert(data.msg);
                 }
             }, 'json');
+        });
+        IM.serviceIds.forEach(function (v) {
+            if(IM.online_list.includes(v)){
+                layui.layim.setFriendStatus(v, 'online');
+            }else{
+                layui.layim.setFriendStatus(v, 'offline');
+            }
         });
     });
 }

@@ -50,6 +50,7 @@ class Events
 //       }
         switch ($message_type) {
             case 'init':
+                $serviceIds=$message['serviceIds'];
                 $uid = $message['id'];
                 if(empty($uid) || $uid!=\App\Token::getUid($message['token'])){
                     return;
@@ -79,25 +80,35 @@ class Events
                 Gateway::joinGroup($client_id, 'group:101');
                 self::$redis->hSet('group:101', $uid, serialize($_SESSION['user']));
 
-                // redis同步在线终端
-                $uids=Gateway::getUidListByGroup('group:101');
-                $list=self::$redis->hGetAll('group:101');
-                $arr_online=[];
-                foreach ($list as $key=>$item){
-                    if(!array_key_exists($key,$uids)){
-                        self::$redis->hDel('group:101', $key);
-                        continue;
+                if(empty($serviceIds)){
+                    // redis同步在线终端
+                    $uids=Gateway::getUidListByGroup('group:101');
+                    $list=self::$redis->hGetAll('group:101');
+                    $arr_online=[];
+                    foreach ($list as $key=>$item){
+                        if(!array_key_exists($key,$uids)){
+                            self::$redis->hDel('group:101', $key);
+                            continue;
+                        }
+                        if ($key != $uid) {
+                            $item         = unserialize($item);
+                            $u            = array(
+                                "username" => $item['username'],
+                                "id"       => $item['id'],
+                                "sign"     => $item['sign'],
+                                "avatar"   => $item['avatar'],
+                                "status"   => "online"
+                            );
+                            $arr_online[] = $u;
+                        }
                     }
-                    if ($key != $uid) {
-                        $item         = unserialize($item);
-                        $u            = array(
-                            "username" => $item['username'],
-                            "id"       => $item['id'],
-                            "sign"     => $item['sign'],
-                            "avatar"   => $item['avatar'],
-                            "status"   => "online"
-                        );
-                        $arr_online[] = $u;
+
+                }else{
+                    $arr_online=[];
+                    foreach ($serviceIds as $uid){
+                        if(Gateway::isUidOnline($uid)==1){
+                            $arr_online[]=$uid;
+                        }
                     }
                 }
                 // 通知当前客户端初始化
@@ -107,7 +118,6 @@ class Events
                     'online_list'  => $arr_online
                 );
                 Gateway::sendToClient($client_id, json_encode($init_message));
-
                 return;
             case 'chatMessage':
                 // 聊天消息

@@ -13,6 +13,8 @@
 <body>
 <script src="/themes/chat/js/jquery.min.js"></script>
 <link rel="stylesheet" href="/plugin/layui/css/layui.mobile.css" media="all"/>
+<link rel="stylesheet" href="/plugin/layui/css/modules/layim/mobile/layim.css" media="all">
+
 <script src="/plugin/layui/layui.js"></script>
 <script type="text/javascript">
     IM={};

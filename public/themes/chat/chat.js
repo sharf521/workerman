@@ -111,6 +111,7 @@ function initLayIM() {
             , find:false
             , right:'20px'
             , copyright: true //是否授权
+            ,min:true
             , title: 'LayChat'
         });
         //监听发送消息
@@ -141,6 +142,7 @@ function initLayIM() {
         //layim建立就绪
         layim.on('ready', function (res) {
             console.log('ready：'+res);
+            console.log(res);
             // 离线消息
             $.post("/imApi/getOffLineMsg", {uid:IM.user.id}, function (data) {
                 if (data.code == 0) {

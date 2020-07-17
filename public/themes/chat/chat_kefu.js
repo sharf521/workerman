@@ -1,4 +1,23 @@
-$(function () {
+IM.initKeFu=false;
+IM.showChat=function (id) {
+    IM.serviceList.forEach(function (k) {
+        if(k.id==id){
+            layui.layim.chat(k);
+            return;
+        }
+    });
+};
+function openKeFu(id) {
+    if(IM.initKeFu){
+        IM.showChat(id);
+        return;
+    }
+    IM.showChat_id=id;
+    IM_initUser();
+}
+function IM_initUser()
+{
+    IM.initKeFu=true;
     $.post("/imApi/initUser", {user_id:IM.user_id,app_id:IM.app_id,nickname:IM.user.username,avatar:IM.user.avatar}, function (data) {
         if (data.code == 0) {
             IM.ws=data.ws;
@@ -15,7 +34,7 @@ $(function () {
             alert(data.msg);
         }
     }, 'json');
-});
+}
 
 IM.inited = false;
 function connect_workerman() {
@@ -23,7 +42,10 @@ function connect_workerman() {
     socket.onopen = function () {
         var initStr = IM.user;
         initStr['type'] = 'init';
-        initStr['serviceIds']=IM.serviceIds;
+        initStr['serviceIds']=[];
+        IM.serviceList.forEach(function (k) {
+            initStr['serviceIds'].push(k.id);
+        });
         socket.send(JSON.stringify(initStr));
         console.log("onopen:" + JSON.stringify(initStr));
     };
@@ -120,22 +142,21 @@ function initLayIM() {
                 insert('[pre class=layui-code]' + text + '[/pre]'); //将内容插入到编辑器
             });
         });
-        //layim建立就绪
-        layim.on('ready', function (res) {
-            console.log('ready：'+res);
-            // 离线消息
-            $.post("/imApi/getOffLineMsg", {uid:IM.user.id}, function (data) {
-                if (data.code == 0) {
-                    var history_message=data.data;
-                    for (var key in history_message) {
-                        console.log(history_message[key]);
-                        layui.layim.getMessage(history_message[key]);
-                    }
-                } else {
-                    alert(data.msg);
+        // 离线消息
+        $.post("/imApi/getOffLineMsg", {uid:IM.user.id}, function (data) {
+            if (data.code == 0) {
+                var history_message=data.data;
+                for (var key in history_message) {
+                    console.log(history_message[key]);
+                    layui.layim.getMessage(history_message[key]);
                 }
-            }, 'json');
-        });
+            } else {
+                alert(data.msg);
+            }
+        }, 'json');
+        if(IM.showChat_id){
+            IM.showChat(IM.showChat_id);
+        }
         IM.serviceIds.forEach(function (v) {
             if(IM.online_list.includes(v)){
                 layui.layim.setFriendStatus(v, 'online');

@@ -258,11 +258,20 @@ class ImApiController extends HomeController
         echo json_encode($array);
     }
 
-    public function history(ChatLog $chatLog, Request $request)
+    public function history(Request $request)
+    {
+        $user_id      = Token::getUid($request->get(2));
+        $data['uid']  = $user_id;
+        $data['id']   = $request->get('id');
+        $data['type'] = $request->get('type');
+        $this->view('history', $data);
+    }
+
+    public function chatLog(ChatLog $chatLog, Request $request)
     {
         $id      = $request->get('id');
         $type    = $request->get('type');
-        $user_id = (int)$request->get(2);
+        $user_id=Token::getUid($request->get(2));
         if ($type == 'group') {
             $result = $chatLog->where("type='{$type}' and to_id='{$id}'")->orderBy('id desc')->pager($_GET['page'], 10);
         } else {
@@ -286,11 +295,9 @@ class ImApiController extends HomeController
                 array_push($arr_arr, $arr);
             }
         }
-        $data['uid']   = $user_id;
-        $data['data']  = json_encode($arr_arr);
-        $data['page']  = $result['page'];
         $data['total'] = $result['total'];
-        $this->view('history', $data);
+        $data['rows']  = $arr_arr;
+        echo json_encode($data);
     }
 
 }

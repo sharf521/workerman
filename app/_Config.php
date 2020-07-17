@@ -16,5 +16,5 @@ class _Config
         'dbfix'    => ''
     );
 
-    public static $ws_url='192.168.0.25:7272';
+    public static $ws_url='ws://192.168.0.25:7272';
 }

@@ -20,7 +20,7 @@ $(function () {
 IM.inited = false;
 function connect_workerman() {
     console.log('ws://'+IM.ws+'/?token='+IM.user.token);
-    socket = new WebSocket('ws://'+IM.ws+'/?token='+IM.user.token);
+    socket = new WebSocket(IM.ws+'/?token='+IM.user.token);
     socket.onopen = function () {
         var initStr = IM.user;
         initStr['type'] = 'init';
@@ -75,10 +75,12 @@ function initLayIM() {
         return;
     }
     IM.inited = true;
-    layui.use('mobile', function () {
+    layui.use(['laypage','laytpl','mobile'], function () {
         var mobile = layui.mobile
-            ,layim = mobile.layim
-            ,layer = mobile.layer;
+            , layim = mobile.layim
+            , layer = mobile.layer
+            , laypage = layui.laypage
+            , laytpl = layui.laytpl;
         console.log(layim);
         //提示层
         layer.msg = function(content){
@@ -177,15 +179,61 @@ function initLayIM() {
         layim.on('chatlog', function(data, ul){
             console.log(data); //得到当前会话对象的基本信息
             console.log(ul); //得到当前聊天列表所在的ul容器，比如可以借助他来实现往上插入更多记录
-
-            //弹出一个更多聊天记录面板
-            layim.panel({
-                title: '与 '+ data.username +' 的聊天记录' //标题
-                ,tpl: '这里是模版，{{d.data.test}}' //模版
-                ,data: { //数据
-                    test: 'Hello'
-                }
-            });
+            myChatLog(1);
+            function myChatLog(curr){
+                $.get('/imApi/chatLog/'+IM.user.token+'/',{id:data.id,type:data.type,page:curr},function(res){
+                    var mine = layim.cache().mine,
+                        chatlogTpl = ['{{#  layui.each(d.rows, function(index, item){ }}',
+                            '	    {{# if(item.id==mine.id){ }}',
+                            '	    	<li class="layim-chat-li layim-chat-mine">',
+                            '	    {{# }else{ }}',
+                            '	    	<li class="layim-chat-li">',
+                            '	 	{{# } }}',
+                            '	 		<div class="layim-chat-user"><img src="{{ item.avatar }}"><cite>{{ item.username }}</cite></div>',
+                            '	 		<div class="layim-chat-text">{{layui.mobile.layim.content(item.content) }}</div>',
+                            '	    </li>',
+                            '	  {{#  }); }}'].join('')
+                        ,mchatlogdom =['<div class="layim-chat-main layim-chat-log"><ul>',
+                            '{{#  layui.each(d.data.rows, function(index, item){ }}',
+                            '	    {{# if(item.id==mine.id){ }}',
+                            '	    	<li class="layim-chat-li layim-chat-mine">',
+                            '	    {{# }else{ }}',
+                            '	    	<li class="layim-chat-li">',
+                            '	 	{{# } }}',
+                            '	 		<div class="layim-chat-user"><img src="{{ item.avatar }}"><cite>{{ item.username }}</cite></div>',
+                            '	 		<div class="layim-chat-text">{{layui.mobile.layim.content(item.content) }}</div>',
+                            '	    </li>',
+                            '	  {{#  }); }}',
+                            '</ul>',
+                            '<div id="pages"></div>',
+                            '</div>'].join("");
+                    //debugger;
+                    if($(".layim-chat-log").length>0){
+                        laytpl(chatlogTpl).render(res, function(html){
+                            $(".layim-chat-log ul").html(html)
+                        });
+                    }else{
+                        layim.panel({
+                            title: '与 '+ data.username +' 的聊天记录' //标题
+                            ,tpl:  mchatlogdom //模版
+                            ,data: res
+                        });
+                    }
+                    laypage.render({
+                        elem: 'pages'
+                        ,count: res.total
+                        ,curr:curr
+                        ,limit:10
+                        ,layout:['page']
+                        ,jump: function(obj, first){
+                            //首次不执行
+                            if(!first){
+                                myChatLog(obj.curr);
+                            }
+                        }
+                    });
+                },'json');
+            }
         });
 
 

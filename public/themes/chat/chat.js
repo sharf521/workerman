@@ -19,7 +19,7 @@ $(function () {
 
 IM.inited = false;
 function connect_workerman() {
-    socket = new WebSocket('ws://'+IM.ws+'/?token='+IM.user.token);
+    socket = new WebSocket(IM.ws+'/?token='+IM.user.token);
     socket.onopen = function () {
         var initStr = IM.user;
         initStr['type'] = 'init';
@@ -107,11 +107,11 @@ function initLayIM() {
                 ,icon: '&#xe64e;'
             }]
             //聊天记录地址
-            , chatLog: '/imApi/history/'+IM.user.id+'/'
+            , chatLog: '/imApi/history/'+IM.user.token+'/'
             , find:false
             , right:'20px'
             , copyright: true //是否授权
-            ,min:true
+            ,min:false
             , title: 'LayChat'
         });
         //监听发送消息

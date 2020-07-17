@@ -36,9 +36,18 @@ function IM_initUser()
     }, 'json');
 }
 
+IM.setFriendStatus=function(id,status){
+    if (status == 'online') {
+        $('.laykefu' + id).removeClass('layim-list-gray');
+        layui.layim.setFriendStatus(id, 'online');
+    } else if (status == 'offline') {
+        $('.laykefu' + id).addClass('layim-list-gray');
+        layui.layim.setFriendStatus(id, 'offline');
+    }
+};
 IM.inited = false;
 function connect_workerman() {
-    socket = new WebSocket('ws://'+IM.ws+'/?token='+IM.user.token);
+    socket = new WebSocket(IM.ws+'/?token='+IM.user.token);
     socket.onopen = function () {
         var initStr = IM.user;
         initStr['type'] = 'init';
@@ -58,7 +67,7 @@ function connect_workerman() {
                 initLayIM();
                 return;
             case 'addList':
-                layui.layim.setFriendStatus(msg.data.id, 'online');
+                IM.setFriendStatus(msg.data.id,'online');
                 return;
             case 'chatMessage':
                 if (IM.user.id !== msg.data.id) {
@@ -67,12 +76,10 @@ function connect_workerman() {
                 return;
             case 'hide':
             case 'logout':
-                layui.layer.msg(msg.id+'offline');
-                layui.layim.setFriendStatus(msg.id, 'offline');
+                IM.setFriendStatus(msg.data.id,'offline');
                 return;
             case 'online':
-                layui.layer.msg(msg.id+'online');
-                layui.layim.setFriendStatus(msg.id, 'online');
+                IM.setFriendStatus(msg.data.id,'online');
                 return;
         }
     };
@@ -116,7 +123,7 @@ function initLayIM() {
                 ,icon: '&#xe64e;'
             }]
             //聊天记录地址
-            , chatLog: '/imApi/history/'+IM.user.id+'/'
+            , chatLog: '/imApi/history/'+IM.user.token+'/'
             //开启客服模式
             ,min:true
             ,brief: false
@@ -157,11 +164,11 @@ function initLayIM() {
         if(IM.showChat_id){
             IM.showChat(IM.showChat_id);
         }
-        IM.serviceIds.forEach(function (v) {
-            if(IM.online_list.includes(v)){
-                layui.layim.setFriendStatus(v, 'online');
+        IM.serviceList.forEach(function (v) {
+            if(IM.online_list.includes(v.id)){
+                IM.setFriendStatus(v.id,'online');
             }else{
-                layui.layim.setFriendStatus(v, 'offline');
+                IM.setFriendStatus(v.id,'offline');
             }
         });
     });

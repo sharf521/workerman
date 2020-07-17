@@ -9,9 +9,27 @@
 <style>
     .layui-layim-close{display: none}
     .layim-list-gray{-webkit-filter: grayscale(100%);  -ms-filter: grayscale(100%); filter: grayscale(100%); filter: gray;}
+    .laykefu-box{
+        position: fixed;
+        top: 320px;
+        right: 20px;
+        width: 120px;
+        overflow: hidden;
+    }
+    .laykefu-box .laykefu-btn {
+        border-radius: 100px;
+        box-shadow: 0 6px 12px 0 rgba(0,0,0,.15);
+        background-color: #33cde5;
+        line-height: 40px;
+        text-align: left;
+        font-size: 14px;
+        color: #fff;
+        cursor: pointer;
+        margin: 3px 0px;
+    }
+    .laykefu-box .laykefu-btn img{border-radius: 100px; width: 30px; height: 30px; margin: 0px 10px;}
 </style>
-<input type="button" onclick="openKeFu(1);" value="客服1">
-<input type="button" onclick="openKeFu(2);" value="客服2">
+
 <script src="/IM_URL/themes/chat/js/jquery.min.js"></script>
 <link rel="stylesheet" href="/IM_URL/plugin/layui/css/layui.css"/>
 <script src="/IM_URL/plugin/layui/layui.js"></script>
@@ -26,18 +44,23 @@
     IM.user = {};
     IM.user.avatar ='';
     IM.user.username = '访客';
-    IM.serviceIds=[1,2];
     IM.serviceList=[{
         name: '客服1'
         ,type: 'friend'
-        ,avatar: '//tva3.sinaimg.cn/crop.0.0.180.180.180/7f5f6861jw1e8qgp5bmzyj2050050aa8.jpg'
+        ,avatar: 'https://www.laykefu.com/uploads/20190419/4eb84234138339f27018e1e3625afd15.jpg'
         ,id: 1
     },{
         name: '客服2'
         ,type: 'friend'
-        ,avatar: '//tva3.sinaimg.cn/crop.0.0.180.180.180/7f5f6861jw1e8qgp5bmzyj2050050aa8.jpg'
+        ,avatar: 'https://www.laykefu.com/uploads/20190419/4eb84234138339f27018e1e3625afd15.jpg'
         ,id: 2
     }];
+    var IM_html='<div class="laykefu-box">\n';
+    IM.serviceList.forEach(function (v) {
+        IM_html+='<div class="laykefu-btn laykefu'+v.id+'" onclick="javascript:openKeFu('+v.id+');"><img src="'+v.avatar+'">'+v.name+'</div>\n';
+    });
+    IM_html+='</div>';
+    $('body').append(IM_html);
 </script>
 <script src="/themes/chat/chat_kefu.js"></script>
 </body>

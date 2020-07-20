@@ -63,6 +63,7 @@
     IM.user = {};
     IM.user.avatar = '';
     IM.user.username = '';
+    IM.user.sign='';
     IM.toUser =
         {
             name: '<?=$toUser['nickname']?>'

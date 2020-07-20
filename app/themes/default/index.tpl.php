@@ -16,6 +16,7 @@
     IM.user = {};
     IM.user.avatar ='';
     IM.user.username = '';
+    IM.user.sign='';
 </script>
 <script src="/themes/chat/chat.js"></script>
 </body>

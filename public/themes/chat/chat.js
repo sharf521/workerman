@@ -1,14 +1,20 @@
 $(function () {
-    $.post("/imApi/initUser", {user_id:IM.user_id,app_id:IM.app_id,nickname:IM.user.username,avatar:IM.user.avatar}, function (data) {
+    $.post("/imApi/initUser", {
+        user_id: IM.user_id,
+        app_id: IM.app_id,
+        nickname: IM.user.username,
+        avatar: IM.user.avatar,
+        sign:IM.user.sign
+    }, function (data) {
         if (data.code == 0) {
-            IM.ws=data.ws;
+            IM.ws = data.ws;
             var user = data.user;
             IM.user.id = user.id;
             IM.user.token = user.token;
             IM.user.avatar = user.avatar;
             IM.user.username = user.nickname;
-            IM.user.sign =user.sign;
-            window.localStorage.setItem('im_token',user.token);
+            IM.user.sign = user.sign;
+            window.localStorage.setItem('im_token', user.token);
             connect_workerman();
             setInterval('send_heartbeat()', 20000);
         } else {
@@ -18,8 +24,9 @@ $(function () {
 });
 
 IM.inited = false;
+
 function connect_workerman() {
-    socket = new WebSocket(IM.ws+'/?token='+IM.user.token);
+    socket = new WebSocket(IM.ws + '/?token=' + IM.user.token);
     socket.onopen = function () {
         var initStr = IM.user;
         initStr['type'] = 'init';
@@ -34,8 +41,8 @@ function connect_workerman() {
                 initLayIM();
                 return;
             case 'addList':
-                if (IM.user.id != msg.data.id && $('.layim-list-friend').find('.layim-friend' + msg.data.id).length==0) {
-                    msg.data.groupid=0;
+                if (IM.user.id != msg.data.id && $('.layim-list-friend').find('.layim-friend' + msg.data.id).length == 0) {
+                    msg.data.groupid = 0;
                     layui.layim.addList(msg.data);
                 }
                 layui.layim.setFriendStatus(msg.data.id, 'online');
@@ -78,80 +85,80 @@ function initLayIM() {
     }
     IM.inited = true;
     layui.use('layim', function (layim) {
-        layim=layui.layim;
+        layim = layui.layim;
         console.log(layim);
         //基础配置
         layim.config({
             //初始化接口
             init: {
-                url: '/imApi/getList/?uid='+IM.user.id
+                url: '/imApi/getList/?uid=' + IM.user.id
             }
             //查看群员接口
             , members: {
-                url: '/imApi/getGroupMembers/?uid='+IM.user.id
+                url: '/imApi/getGroupMembers/?uid=' + IM.user.id
             }
             // 上传图片
             , uploadImage: {
-                url: '/pictureApi/memberApi/upload/save?type=chat&token='+window.localStorage.getItem('im_token')
+                url: '/pictureApi/memberApi/upload/save?type=chat&token=' + window.localStorage.getItem('im_token')
             }
             // 上传文件
             , uploadFile: {
-                url: '/pictureApi/memberApi/upload/save?type=chat&token='+window.localStorage.getItem('im_token')
+                url: '/pictureApi/memberApi/upload/save?type=chat&token=' + window.localStorage.getItem('im_token')
             }
-            ,isAudio: true //开启聊天工具栏音频
-            ,isVideo: true //开启聊天工具栏视频
+            , isAudio: true //开启聊天工具栏音频
+            , isVideo: true //开启聊天工具栏视频
             //扩展工具栏
-            ,tool: [{
+            , tool: [{
                 alias: 'code'
-                ,title: '代码'
-                ,icon: '&#xe64e;'
+                , title: '代码'
+                , icon: '&#xe64e;'
             }]
             //聊天记录地址
-            , chatLog: '/IM_URL/chat/history/'+IM.user.token+'/'
-            , find:false
-            , right:'20px'
+            , chatLog: '/IM_URL/chat/history/' + IM.user.token + '/'
+            , find: false
+            , right: '20px'
             , copyright: true //是否授权
-            ,min:false
+            , min: false
             , title: 'MyChat'
         });
         //监听发送消息
         layim.on('sendMessage', function (data) {
-            socket.send(JSON.stringify({type: 'chatMessage',data:data}));
-            console.log("sendMessage:" + JSON.stringify({type: 'chatMessage',data:data}));
+            socket.send(JSON.stringify({type: 'chatMessage', data: data}));
+            console.log("sendMessage:" + JSON.stringify({type: 'chatMessage', data: data}));
         });
-        layim.on('sign', function(value){
+        layim.on('sign', function (value) {
             console.log(value); //获得新的签名
-            $.post("/imApi/changSign/", {uid:IM.user.id,sign: value});
+            $.post("/imApi/changSign/", {uid: IM.user.id, sign: value});
         });
         //监听在线状态的切换事件
         layim.on('online', function (data) {
             socket.send(JSON.stringify({type: data}));
         });
-        layim.on('chatChange', function(res){
+        layim.on('chatChange', function (res) {
             var type = res.data.type;
-            if(type === 'friend'){
+            if (type === 'friend') {
                 layim.setChatStatus(res.data.sign);
             }
         });
         //监听自定义工具栏点击，以添加代码为例
-        layim.on('tool(code)', function(insert){
+        layim.on('tool(code)', function (insert) {
             layer.prompt({
                 title: '插入代码'
-                ,formType: 2
-                ,shade: 0
-            }, function(text, index){
+                , formType: 2
+                , shade: 0
+            }, function (text, index) {
                 layer.close(index);
                 insert('[pre class=layui-code]' + text + '[/pre]'); //将内容插入到编辑器
             });
         });
         //layim建立就绪
         layim.on('ready', function (res) {
-            console.log('ready：'+res);
+            console.log('ready：' + res);
             console.log(res);
             // 离线消息
-            $.post("/imApi/getOffLineMsg", {uid:IM.user.id}, function (data) {
+            $.post("/imApi/getOffLineMsg", {uid: IM.user.id}, function (data) {
                 if (data.code == 0) {
-                    var history_message=data.data;
+                    var history_message = data.data;
                     for (var key in history_message) {
                         console.log(history_message[key]);
                         layui.layim.getMessage(history_message[key]);

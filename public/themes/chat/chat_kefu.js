@@ -19,16 +19,22 @@ IM_initUser();
 function IM_initUser()
 {
     IM.initKeFu=true;
-    $.post("/imApi/initUser", {user_id:IM.user_id,app_id:IM.app_id,nickname:IM.user.username,avatar:IM.user.avatar}, function (data) {
+    $.post("/imApi/initUser", {
+        user_id: IM.user_id,
+        app_id: IM.app_id,
+        nickname: IM.user.username,
+        avatar: IM.user.avatar,
+        sign:IM.user.sign
+    }, function (data) {
         if (data.code == 0) {
-            IM.ws=data.ws;
+            IM.ws = data.ws;
             var user = data.user;
             IM.user.id = user.id;
             IM.user.token = user.token;
             IM.user.avatar = user.avatar;
             IM.user.username = user.nickname;
-            IM.user.sign =user.sign;
-            window.localStorage.setItem('im_token',user.token);
+            IM.user.sign = user.sign;
+            window.localStorage.setItem('im_token', user.token);
             connect_workerman();
             setInterval('send_heartbeat()', 20000);
         } else {

@@ -28,6 +28,7 @@
     IM.user = {};
     IM.user.avatar ='';
     IM.user.username = '访客';
+    IM.user.sign='';
     IM.serviceList=[{
         name: '客服1'
         ,type: 'friend'

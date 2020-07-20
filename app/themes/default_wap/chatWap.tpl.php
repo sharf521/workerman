@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-    <title>LayIM移动版测试</title>
+    <title>对话移动版</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <style>
@@ -45,9 +45,9 @@
         .layui-laypage input:focus,
         .layui-laypage select:focus{border-color: #009688!important;}
         .layui-laypage button{margin-left: 10px; padding: 0 10px; cursor: pointer;}
-        /*
+
         body .layim-title{display: none;}
-        body .layim-chat-main, body .layim-content, body .layui-layim{top: 0}*/
+        body .layim-chat-main, body .layim-content, body .layui-layim{top: 0}
     </style>
 </head>
 <body>
@@ -57,21 +57,18 @@
 
 <script src="/plugin/layui/layui.js"></script>
 <script type="text/javascript">
-    IM={};
-    IM.user_id = '<?=$_GET['id']?>';
-    IM.app_id = '10';
+    IM = {};
+    IM.user_id = '<?=$user_id?>';
+    IM.app_id = '<?=$app_id?>';
     IM.user = {};
-    IM.user.avatar ='';
+    IM.user.avatar = '';
     IM.user.username = '';
-    <?
-    $toUser=(new \App\Model\AppUser())->getUser($_GET['to_uid'],10);
-    ?>
     IM.toUser =
         {
-            name: '<?=$toUser->nickname?>'
+            name: '<?=$toUser['nickname']?>'
             , type: 'friend'
-            , avatar: '<?=$toUser->avatar?>'
-            , id: '<?=$toUser->id?>'
+            , avatar: '<?=$toUser['avatar']?>'
+            , id: '<?=$toUser['id']?>'
         }
 </script>
 <script src="/themes/chat/chat_wap_kefu.js"></script>

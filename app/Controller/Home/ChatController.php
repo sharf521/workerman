@@ -2,6 +2,7 @@
 
 namespace App\Controller\Home;
 
+use App\Model\AppUser;
 use App\Token;
 use System\Lib\Request;
 
@@ -35,9 +36,29 @@ class ChatController extends HomeController
         $this->view('kefu');
     }
 
-    public function chatWap()
+    public function chatWap(Request $request)
     {
+        $data['user_id'] = Token::getUid($request->get('token'));
+        if ($data['user_id'] == 0) {
+            $data['user_id'] = (int)$request->get('id');
+        }
+        if(empty($data['user_id'])){
+            echo 'token error';
+            exit;
+        }
+        $to_uid = (int)$request->get('to_uid');
+        $app_id = (int)$request->get('app_id');
+        if (empty($app_id)) {
+            $app_id = 10;
+        }
+        $data['app_id'] = $app_id;
+        $toUser         = (new AppUser())->getUserOrCreate($to_uid, 10);
+        $data['toUser'] = array(
+            'id'       => $toUser['id'],
+            'username' => $toUser['nickname'],
+            'avatar'   => $toUser['avatar']
+        );
         $this->template = 'default_wap';
-        $this->view('kefu');
+        $this->view('chatWap', $data);
     }
 }

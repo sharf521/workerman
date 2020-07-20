@@ -129,14 +129,6 @@ function initLayIM() {
             socket.send(JSON.stringify({type: data}));
         });
 
-        //监听返回
-        layim.on('back', function(){
-            //比如返回到上一页面（而不是界面）：
-            history.back();
-
-            //或者做一些其他的事
-        });
-
         function myChatLog(data,curr){
             $.get('/imApi/chatLog/'+IM.user.token+'/',{id:data.id,type:data.type,page:curr},function(res){
                 //var mine = layim.cache().mine,
@@ -202,7 +194,13 @@ function initLayIM() {
             console.log(data); //得到当前会话对象的基本信息
             console.log(ul); //得到当前聊天列表所在的ul容器，比如可以借助他来实现往上插入更多记录
             myChatLog(data,1);
+        });
 
+        //监听返回
+        layim.on('back', function () {
+            //比如返回到上一页面（而不是界面）：
+            //history.back();
+            //或者做一些其他的事
         });
 
         // 离线消息

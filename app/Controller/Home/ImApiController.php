@@ -25,34 +25,16 @@ class ImApiController extends HomeController
         $app_id   = (int)$request->post('app_id');
         $avatar   = $request->post('avatar');
         $nickname = $request->post('nickname');
-        if (empty($avatar)) {
-            $avatar   = 'http://lorempixel.com/38/38/?' . $user_id;
-        }
-        if (empty($nickname)) {
-            $nickname = 'user' . $user_id;
-        }
-        $user=(new AppUser())->getUser($user_id,$app_id);
-        $user->avatar   = $avatar;
-        $user->nickname = $nickname;
-        if (!$user->is_exist) {
-            $user->user_id = $user_id;
-            $user->app_id  = $app_id;
-            $user->sign    = '';
-            $user->openid  = $user->createOpenId($user_id, $app_id);
-            $id            = $user->save(true);
-        } else {
-            $user->save();
-            $id = $user->id;
-        }
-        $return = array(
+        $user     = (new AppUser())->getUserOrCreate($user_id, $app_id, $nickname, $avatar);
+        $return   = array(
             'code' => 0,
             'ws'   => Config::$ws_url,
             'user' => array(
-                'id'       => $id,
-                'avatar'   => $user->avatar,
-                'nickname' => $user->nickname,
-                'sign'     => $user->sign,
-                'token'    => Token::createToken($id, 1)
+                'id'       => $user['id'],
+                'avatar'   => $user['avatar'],
+                'nickname' => $user['nickname'],
+                'sign'     => $user['sign'],
+                'token'    => Token::createToken($user['id'], 1)
             )
         );
         echo json_encode($return);

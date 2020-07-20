@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>layim - layui</title>
+    <title>PC</title>
 </head>
 <body>
 <script src="/IM_URL/themes/chat/js/jquery.min.js"></script>

@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-    <title>LayIM移动版测试</title>
+    <title>移动版</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <style>

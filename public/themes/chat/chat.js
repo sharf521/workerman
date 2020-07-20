@@ -112,7 +112,7 @@ function initLayIM() {
             , right:'20px'
             , copyright: true //是否授权
             ,min:false
-            , title: 'LayChat'
+            , title: 'MyChat'
         });
         //监听发送消息
         layim.on('sendMessage', function (data) {

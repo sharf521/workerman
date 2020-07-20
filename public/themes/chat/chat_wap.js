@@ -135,7 +135,7 @@ function initLayIM() {
                 ,iconUnicode: '' //图标字体的unicode，可不填
                 ,iconClass: '' //图标字体的class类名
             }]
-            , title: 'LayChat'
+            , title: 'MyChat'
             //,isNewFriend: false //是否开启“新的朋友”
             ,isgroup: true //是否开启“群聊”
             //,chatTitleColor: '#c00' //顶部Bar颜色

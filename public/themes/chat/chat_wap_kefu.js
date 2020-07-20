@@ -122,7 +122,7 @@ function initLayIM() {
             }
             ,isAudio: true //开启聊天工具栏音频
             ,isVideo: true //开启聊天工具栏视频
-            , title: 'LayChat'
+            , title: 'MyChat'
             //,isNewFriend: false //是否开启“新的朋友”
             ,isgroup: false //是否开启“群聊”
             ,brief:true

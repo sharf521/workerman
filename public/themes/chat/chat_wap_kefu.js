@@ -17,6 +17,7 @@ $(function () {
     }, 'json');
 });
 
+
 IM.inited = false;
 function connect_workerman() {
     console.log('ws://'+IM.ws+'/?token='+IM.user.token);
@@ -36,23 +37,19 @@ function connect_workerman() {
                 initLayIM();
                 return;
             case 'addList':
-                if (IM.user.id != msg.data.id && $('.layim-list-friend').find('.layim-friend' + msg.data.id).length==0) {
-                    msg.data.groupid=0;
-                    layui.mobile.layim.addList(msg.data);
-                }
                 layui.mobile.layim.setFriendStatus(msg.data.id, 'online');
                 return;
             case 'chatMessage':
                 if (IM.user.id !== msg.data.id) {
                     layui.mobile.layim.getMessage(msg.data);
                 }
+                layui.mobile.layim.setChatStatus('在线'); //模拟标注好友在线状态
                 return;
             case 'hide':
                 layui.mobile.layim.setFriendStatus(msg.id, 'offline'); //设置指定好友在线，即头像置灰
                 return;
             case 'logout':
                 layui.mobile.layim.setFriendStatus(msg.id, 'offline'); //设置指定好友在线，即头像置灰
-                layui.mobile.layim.removeList({id: msg.id, type: 'friend'});
                 return;
             case 'online':
                 layui.mobile.layim.setFriendStatus(msg.id, 'online'); //设置指定好友在线，即头像取消置灰
@@ -102,16 +99,6 @@ function initLayIM() {
                     , "sign": IM.user.sign
                     , "status": "online"
                 }
-                ,friend: [{
-                    "groupname": "在线列表"
-                    ,"id": 0
-                    ,"list": IM.online_list
-                }]
-                ,"group": [{
-                    "groupname": "在线群"
-                    ,"id": "101"
-                    ,"avatar": "http://tp2.sinaimg.cn/2211874245/180/40050524279/0"
-                }]
             }
             // 上传图片
             , uploadImage: {
@@ -123,26 +110,17 @@ function initLayIM() {
             }
             ,isAudio: true //开启聊天工具栏音频
             ,isVideo: true //开启聊天工具栏视频
-            //可同时配置多个
-            ,moreList: [{
-                alias: 'find'
-                ,title: '发现'
-                ,iconUnicode: '&#xe628;' //图标字体的unicode，可不填
-                ,iconClass: '' //图标字体的class类名
-            },{
-                alias: 'share'
-                ,title: '分享'
-                ,iconUnicode: '' //图标字体的unicode，可不填
-                ,iconClass: '' //图标字体的class类名
-            }]
             , title: 'LayChat'
             //,isNewFriend: false //是否开启“新的朋友”
-            ,isgroup: true //是否开启“群聊”
+            ,isgroup: false //是否开启“群聊”
+            ,brief:true
             //,chatTitleColor: '#c00' //顶部Bar颜色
         });
+
+        layui.mobile.layim.chat(IM.toUser);
+
         //监听发送消息
         layim.on('sendMessage', function (data) {
-            //$.post("/imApi/post_message/", {data: data});
             socket.send(JSON.stringify({type: 'chatMessage',data:data}));
             console.log("sendMessage:" + JSON.stringify({type: 'chatMessage',data:data}));
         });
@@ -151,15 +129,12 @@ function initLayIM() {
             socket.send(JSON.stringify({type: data}));
         });
 
-        //监听点击“新的朋友”
-        layim.on('newFriend', function(){
-            layim.panel({
-                title: '新的朋友' //标题
-                ,tpl: '<div style="padding: 10px;">自定义模版，{{d.data.test}}</div>' //模版
-                ,data: { //数据
-                    test: '么么哒'
-                }
-            });
+        //监听返回
+        layim.on('back', function(){
+            //比如返回到上一页面（而不是界面）：
+            history.back();
+
+            //或者做一些其他的事
         });
 
         function myChatLog(data,curr){
@@ -199,7 +174,7 @@ function initLayIM() {
                     });
                 }else{
                     layim.panel({
-                        title: (data.type == 'friend'?'与 ' + data.username :data.groupname)+' 的聊天记录'
+                        title: '与 ' + data.name+' 的聊天记录'
                         , tpl: mchatlogdom //模版
                         , data: res
                     });
@@ -222,37 +197,12 @@ function initLayIM() {
             },'json');
         }
 
-        //查看聊天信息
-        layim.on('detail', function(data){
-            console.log(data); //获取当前会话对象
-            myChatLog(data,1);
-        });
-
         //监听查看更多记录
         layim.on('chatlog', function(data, ul){
             console.log(data); //得到当前会话对象的基本信息
             console.log(ul); //得到当前聊天列表所在的ul容器，比如可以借助他来实现往上插入更多记录
             myChatLog(data,1);
 
-        });
-
-
-        //监听点击更多列表
-        layim.on('moreList', function(obj){
-            switch(obj.alias){ //alias即为上述配置对应的alias
-                case 'find': //发现
-                    layer.msg('自定义发现动作');
-                    break;
-                case 'share':
-                    layim.panel({
-                        title: 'share' //分享
-                        ,tpl: '<div style="padding: 10px;">自定义模版，{{d.data.test}}</div>' //模版
-                        ,data: { //数据
-                            test: '123'
-                        }
-                    });
-                    break;
-            }
         });
 
         // 离线消息

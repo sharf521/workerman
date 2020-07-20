@@ -123,7 +123,7 @@ function initLayIM() {
                 ,icon: '&#xe64e;'
             }]
             //聊天记录地址
-            , chatLog: '/imApi/history/'+IM.user.token+'/'
+            , chatLog: '/chat/history/'+IM.user.token+'/'
             //开启客服模式
             ,min:true
             ,brief: false
@@ -138,6 +138,7 @@ function initLayIM() {
         layim.on('online', function (data) {
             socket.send(JSON.stringify({type: data}));
         });
+
         //监听自定义工具栏点击，以添加代码为例
         layim.on('tool(code)', function(insert){
             layer.prompt({

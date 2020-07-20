@@ -15,7 +15,6 @@ class ImApiController extends HomeController
     public function __construct()
     {
         parent::__construct();
-        $this->template = 'default';
         $this->redis    = new \Redis();
         $this->redis->connect('127.0.0.1', 6379);
     }
@@ -32,7 +31,7 @@ class ImApiController extends HomeController
         if (empty($nickname)) {
             $nickname = 'user' . $user_id;
         }
-        $user           = (new AppUser())->where("user_id='{$user_id}' and app_id={$app_id}")->first();
+        $user=(new AppUser())->getUser($user_id,$app_id);
         $user->avatar   = $avatar;
         $user->nickname = $nickname;
         if (!$user->is_exist) {
@@ -258,15 +257,6 @@ class ImApiController extends HomeController
         echo json_encode($array);
     }
 
-    public function history(Request $request)
-    {
-        $user_id      = Token::getUid($request->get(2));
-        $data['uid']  = $user_id;
-        $data['id']   = $request->get('id');
-        $data['type'] = $request->get('type');
-        $this->view('history', $data);
-    }
-
     public function chatLog(ChatLog $chatLog, Request $request)
     {
         $id      = $request->get('id');
@@ -290,7 +280,7 @@ class ImApiController extends HomeController
                     'avatar'     => $user->avatar,
                     'type'       => $row->type,
                     'content'    => $row->content,
-                    'created_at' => $row->created_at
+                    'created_at' => substr($row->created_at,5,-3)
                 );
                 array_push($arr_arr, $arr);
             }

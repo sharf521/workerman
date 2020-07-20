@@ -107,7 +107,7 @@ function initLayIM() {
                 ,icon: '&#xe64e;'
             }]
             //聊天记录地址
-            , chatLog: '/imApi/history/'+IM.user.token+'/'
+            , chatLog: '/chat/history/'+IM.user.token+'/'
             , find:false
             , right:'20px'
             , copyright: true //是否授权
@@ -116,7 +116,6 @@ function initLayIM() {
         });
         //监听发送消息
         layim.on('sendMessage', function (data) {
-            //$.post("/imApi/post_message/", {data: data});
             socket.send(JSON.stringify({type: 'chatMessage',data:data}));
             console.log("sendMessage:" + JSON.stringify({type: 'chatMessage',data:data}));
         });
@@ -127,6 +126,12 @@ function initLayIM() {
         //监听在线状态的切换事件
         layim.on('online', function (data) {
             socket.send(JSON.stringify({type: data}));
+        });
+        layim.on('chatChange', function(res){
+            var type = res.data.type;
+            if(type === 'friend'){
+                layim.setChatStatus(res.data.sign);
+            }
         });
         //监听自定义工具栏点击，以添加代码为例
         layim.on('tool(code)', function(insert){

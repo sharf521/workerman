@@ -25,7 +25,8 @@ class ImApiController extends HomeController
         $app_id   = (int)$request->post('app_id');
         $avatar   = $request->post('avatar');
         $nickname = $request->post('nickname');
-        $user     = (new AppUser())->getUserOrCreate($user_id, $app_id, $nickname, $avatar);
+        $sign = $request->post('sign');
+        $user     = (new AppUser())->getUserOrCreate($user_id, $app_id, $nickname, $avatar,$sign);
         $return   = array(
             'code' => 0,
             'ws'   => Config::$ws_url,

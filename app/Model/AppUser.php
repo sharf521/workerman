@@ -30,13 +30,11 @@ class AppUser extends Model
         $user           = $this->getUser($user_id, $app_id);
         $user->avatar   = $avatar;
         $user->nickname = $nickname;
-        if ($sign != '') {
-            $user->sign = $sign;
-        }
         if (!$user->is_exist) {
             $user->user_id = $user_id;
             $user->app_id  = $app_id;
             $user->openid  = $this->createOpenId($user_id, $app_id);
+            $user->sign    = $sign;
             $id            = $user->save(true);
         } else {
             $user->save();

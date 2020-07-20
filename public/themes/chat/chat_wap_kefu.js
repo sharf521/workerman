@@ -24,6 +24,7 @@ function connect_workerman() {
     socket = new WebSocket(IM.ws+'/?token='+IM.user.token);
     socket.onopen = function () {
         var initStr = IM.user;
+        initStr['serviceIds']=[IM.toUser.id];
         initStr['type'] = 'init';
         socket.send(JSON.stringify(initStr));
         console.log("onopen:" + JSON.stringify(initStr));
@@ -36,23 +37,34 @@ function connect_workerman() {
                 IM.online_list=msg.online_list;
                 initLayIM();
                 return;
-            case 'addList':
-                layui.mobile.layim.setFriendStatus(msg.data.id, 'online');
-                return;
             case 'chatMessage':
                 if (IM.user.id !== msg.data.id) {
                     layui.mobile.layim.getMessage(msg.data);
                 }
-                layui.mobile.layim.setChatStatus('在线'); //模拟标注好友在线状态
                 return;
             case 'hide':
-                layui.mobile.layim.setFriendStatus(msg.id, 'offline'); //设置指定好友在线，即头像置灰
-                return;
             case 'logout':
-                layui.mobile.layim.setFriendStatus(msg.id, 'offline'); //设置指定好友在线，即头像置灰
+                if(msg.id==IM.toUser.id){
+                    layui.mobile.layim.getMessage({
+                        system: true //系统消息
+                        ,id: IM.toUser.id //聊天窗口ID
+                        ,type: "friend" //聊天窗口类型
+                        ,content: '对方已离线'
+                    });
+                    layui.mobile.layim.setFriendStatus(msg.id, 'offline'); //设置指定好友在线，即头像置灰
+                }
                 return;
+            case 'addList':
             case 'online':
-                layui.mobile.layim.setFriendStatus(msg.id, 'online'); //设置指定好友在线，即头像取消置灰
+                if(msg.id==IM.toUser.id || msg.data.id==IM.toUser.id){
+                    layui.mobile.layim.getMessage({
+                        system: true //系统消息
+                        ,id: IM.toUser.id //聊天窗口ID
+                        ,type: "friend" //聊天窗口类型
+                        ,content: '对方已上线'
+                    });
+                    layui.mobile.layim.setFriendStatus(msg.id, 'online'); //设置指定好友在线，即头像置灰
+                }
                 return;
         }
     };
@@ -215,5 +227,21 @@ function initLayIM() {
                 alert(data.msg);
             }
         }, 'json');
+
+        if(IM.online_list.includes(IM.toUser.id)){
+            layim.getMessage({
+                system: true //系统消息
+                ,id: IM.toUser.id //聊天窗口ID
+                ,type: "friend" //聊天窗口类型
+                ,content: '对方在线'
+            });
+        }else{
+            layim.getMessage({
+                system: true //系统消息
+                ,id: IM.toUser.id //聊天窗口ID
+                ,type: "friend" //聊天窗口类型
+                ,content: '对方已离线'
+            });
+        }
     });
 }

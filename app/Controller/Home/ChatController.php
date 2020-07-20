@@ -36,6 +36,7 @@ class ChatController extends HomeController
         $this->view('kefu');
     }
 
+    //chat/chatWap/?app_id=10&token={}&to_uid=3
     public function chatWap(Request $request)
     {
         $data['user_id'] = Token::getUid($request->get('token'));

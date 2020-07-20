@@ -15,6 +15,7 @@ function openKeFu(id) {
     IM.showChat_id=id;
     IM_initUser();
 }
+IM_initUser();
 function IM_initUser()
 {
     IM.initKeFu=true;
@@ -116,6 +117,10 @@ function initLayIM() {
             }
             ,isAudio: true //开启聊天工具栏音频
             ,isVideo: true //开启聊天工具栏视频
+            // 上传图片
+            , uploadImage: {
+                url: '/pictureApi/memberApi/upload/save?type=chat&token='+window.localStorage.getItem('im_token')
+            }
             //扩展工具栏
             ,tool: [{
                 alias: 'code'
@@ -123,7 +128,7 @@ function initLayIM() {
                 ,icon: '&#xe64e;'
             }]
             //聊天记录地址
-            , chatLog: '/chat/history/'+IM.user.token+'/'
+            , chatLog: '/IM_URL/chat/history/'+IM.user.token+'/'
             //开启客服模式
             ,min:true
             ,brief: false

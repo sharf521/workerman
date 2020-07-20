@@ -107,7 +107,7 @@ function initLayIM() {
                 ,icon: '&#xe64e;'
             }]
             //聊天记录地址
-            , chatLog: '/chat/history/'+IM.user.token+'/'
+            , chatLog: '/IM_URL/chat/history/'+IM.user.token+'/'
             , find:false
             , right:'20px'
             , copyright: true //是否授权

@@ -7,27 +7,11 @@
 </head>
 <body>
 <style>
-    .layui-layim-close{display: none}
-    .layim-list-gray{-webkit-filter: grayscale(100%);  -ms-filter: grayscale(100%); filter: grayscale(100%); filter: gray;}
-    .laykefu-box{
-        position: fixed;
-        top: 320px;
-        right: 20px;
-        width: 120px;
-        overflow: hidden;
-    }
-    .laykefu-box .laykefu-btn {
-        border-radius: 100px;
-        box-shadow: 0 6px 12px 0 rgba(0,0,0,.15);
-        background-color: #33cde5;
-        line-height: 40px;
-        text-align: left;
-        font-size: 14px;
-        color: #fff;
-        cursor: pointer;
-        margin: 3px 0px;
-    }
-    .laykefu-box .laykefu-btn img{border-radius: 100px; width: 30px; height: 30px; margin: 0px 10px;}
+    .layui-layim-close{display:none}
+    .layim-list-gray{-webkit-filter:grayscale(100%);-ms-filter:grayscale(100%);filter:grayscale(100%);filter:gray}
+    .laykefu-box{position:fixed;top:320px;right:20px;width:120px;overflow:hidden;z-index: 999}
+    .laykefu-box .laykefu-btn{border-radius:100px;box-shadow:0 6px 12px 0 rgba(0,0,0,.15);background-color:#33cde5;line-height:40px;text-align:left;font-size:14px;color:#fff;cursor:pointer;margin:3px 0}
+    .laykefu-box .laykefu-btn img{border-radius:100px;width:30px;height:30px;margin:0 10px}
 </style>
 
 <script src="/IM_URL/themes/chat/js/jquery.min.js"></script>

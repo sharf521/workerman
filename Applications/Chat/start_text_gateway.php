@@ -4,11 +4,11 @@ use \GatewayWorker\Gateway;
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 // #### 内部推送端口(假设当前服务器内网ip为192.168.100.100) ####
-$internal_gateway = new Gateway("Text://127.0.0.1:7273");
+$internal_gateway = new Gateway("Text://121.41.30.46:7273");
 $internal_gateway->name='internalGateway';
-$internal_gateway->startPort = 2800;
+$internal_gateway->startPort = 3300;
 // 端口为start_register.php中监听的端口，聊天室默认是1236
-$internal_gateway->registerAddress = '121.41.30.46:1236';
+$internal_gateway->registerAddress = '127.0.0.1:1236';
 // #### 内部推送端口设置完毕 ####
 
 if(!defined('GLOBAL_START'))

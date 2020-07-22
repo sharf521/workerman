@@ -1,3 +1,8 @@
+workerman
+yum install php72w-process
+yum install libevent-devel
+yum install php72w-devel
+
 workerman-chat
 
 

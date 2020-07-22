@@ -4,6 +4,8 @@
  * php start.php start
  */
 
+define('ROOT', __DIR__);
+
 ini_set('display_errors', 'on');
 use Workerman\Worker;
 

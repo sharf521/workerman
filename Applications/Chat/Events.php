@@ -171,18 +171,19 @@ class Events
                 );
                 Gateway::sendToAll(json_encode($status_message));
                 return;
+            case 'addTimerCurl':
+                \Workerman\Lib\Timer::add(60 * $message['minute'], function ($url) {
+                    echo "timer {$url}\n";
+                    \App\Helper::log('workerman',"timer {$url}\n");
+                    echo \App\Helper::curl_url($url);
+                }, array($message['url']), false);
+                return;
             case 'ping':
                 return;
             default:
                 echo "unknown message $data";
         }
         //DB::close(\MyPhp\Config::$db);
-    }
-
-    public static function  getList()
-    {
-        $list=self::$redis->hGetAll('group101');
-        echo count($list)."\r\n";
     }
 
     /**

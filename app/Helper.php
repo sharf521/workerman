@@ -8,10 +8,7 @@
 
 namespace App;
 
-
-use App\Model\SubSite;
 use Predis\Client;
-use System\Lib\Request;
 
 class Helper
 {
@@ -157,26 +154,6 @@ class Helper
         else
             return false;
     }
-
-    //新
-    public static function getWxChatOpenId($auth_type=1)
-    {
-        $request=new Request();
-        //session()->remove('wechat_openid');
-        $wx_openid = $request->get('wx_openid');
-        if(empty($wx_openid)) {
-            $url = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'] . '?' . $_SERVER['QUERY_STRING'];
-            $url=urlencode($url);
-            if($auth_type==1){
-                redirect("http://centerwap.tianjiangbao.com/wxApi/oauth/?type=1&url={$url}");
-            }else{
-                redirect("http://centerwap.tianjiangbao.com/wxApi/oauth/?type=2&url={$url}");
-            }
-        }else{
-            //session()->set('wechat_openid',$wx_openid);//登陆后绑定
-            return $wx_openid;
-        }
-    }
     
     public static function getSystemParam($code)
     {
@@ -188,11 +165,6 @@ class Helper
             }
         }
         return $value;
-    }
-
-    public static function getQqLink($qq=123456)
-    {
-        return "<a href='http://wpa.qq.com/msgrd?v=3&uin={$qq}&site=qq&menu=yes' target='_blank'><img src='http://wpa.qq.com/pa?p=1:{$qq}:4' alt='QQ'></a>";
     }
 
     public static function QRcode($txt,$filePath='goods',$fileName=0,$level='M')
@@ -215,65 +187,6 @@ class Helper
         return $img_url;
     }
 
-    /**
-     * //获取顶级域名
-     * @return array|string
-     */
-    public static function getTopDomain($port=0)
-    {
-        $domain=strtolower($_SERVER['HTTP_HOST']);
-        if($port==0 && strpos($domain,':')!==false){
-            //去除端口
-            $domain=explode(':',$domain);
-            $domain=$domain[0];
-        }
-        $domain_arr=explode('.',$domain);
-        if($domain_arr[count($domain_arr)-2]=='com'){
-            $domain=$domain_arr[count($domain_arr)-3].'.'.$domain_arr[count($domain_arr)-2].'.'.$domain_arr[count($domain_arr)-1];
-        }else{
-            $domain=$domain_arr[count($domain_arr)-2].'.'.$domain_arr[count($domain_arr)-1];
-        }
-        return $domain;
-    }
-
-    /**
-     * @param $str
-     * @param string $operation='D' 解密
-     * @return string
-     */
-    public static function encrypt($str,$operation='E')
-    {
-        $key=self::getSystemParam('md5key').'06l3d3zZ';
-        $key=substr($key,0,8);
-        if($operation!='D'){
-            //关键数据DES加密
-            $encrypt=$str;
-            // 根據 PKCS#7 RFC 5652 Cryptographic Message Syntax (CMS) 修正 Message 加入 Padding
-            $block = mcrypt_get_block_size(MCRYPT_DES, MCRYPT_MODE_ECB);
-            $pad = $block - (strlen($encrypt) % $block);
-            $encrypt .= str_repeat(chr($pad), $pad);
-            // 不需要設定 IV 進行加密
-            $passcrypt = mcrypt_encrypt(MCRYPT_DES, $key, $encrypt, MCRYPT_MODE_ECB);
-            return base64_encode($passcrypt);
-        }else{
-            $str=base64_decode($str);
-            $str = mcrypt_decrypt(MCRYPT_DES, $key, $str, MCRYPT_MODE_ECB);
-            $len = strlen($str);
-            $block = mcrypt_get_block_size('des', 'ecb');
-            $pad = ord($str[$len - 1]);
-            return substr($str, 0, $len - $pad);
-        }
-    }
-
-    //获取手机端完整URL
-    public static function getWapFullUrl($site_id,$path='')
-    {
-        $subsite=(new SubSite())->find($site_id);
-        if($subsite->is_exist){
-            $arrDomain=explode('|',$subsite->domain);
-            return 'http://'.$arrDomain[1].'/'.ltrim($path,'/');
-        }
-    }
 
     public static function log($name='error',$data)
     {

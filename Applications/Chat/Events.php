@@ -174,8 +174,8 @@ class Events
             case 'addTimerCurl':
                 \Workerman\Lib\Timer::add(60 * $message['minute'], function ($url) {
                     echo "timer {$url}\n";
-                    \App\Helper::log('workerman',"timer {$url}\n");
-                    echo \App\Helper::curl_url($url);
+                    self::log('workerman',"timer {$url}\n");
+                    echo self::curl_url($url);
                 }, array($message['url']), false);
                 return;
             case 'ping':
@@ -203,5 +203,48 @@ class Events
             Gateway::sendToAll(json_encode($logout_message));
             self::$redis->hDel('group:101', $uid);
         }
+    }
+
+    public static function curl_url($url, $data = array())
+    {
+        $ssl = substr($url, 0, 8) == "https://" ? TRUE : FALSE;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        if ($data) {
+            if (is_array($data)) {
+                curl_setopt($ch, CURLOPT_POST, 1);
+            } else {
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+                curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                        'Content-Type: application/json',
+                        'Content-Length: ' . strlen($data))
+                );
+            }
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        }
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        if ($ssl) {
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        }
+        $data = curl_exec($ch);
+        curl_close($ch);
+        return $data;
+    }
+
+    public static function log($name='error',$data)
+    {
+        $path = ROOT . "/public/data/logs/";
+        if (!file_exists($path)) {
+            mkdir($path,0777,true);
+        }
+        $myfile = fopen($path.$name.'_'.date('Ym').".txt", "a+");
+        if(is_array($data)){
+            $data=json_encode($data);
+        }
+        fwrite($myfile, '【'.date('Y-m-d H:i:s').'】'."\t".$data."\r\n");
+        fclose($myfile);
     }
 }

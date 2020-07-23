@@ -65,7 +65,7 @@ class ImApiController extends HomeController
             "list"      => array()
         );
         $arr_online  = array();
-        $list        = $this->redis->hGetAll('group:101');
+        $list        = $this->redis->hGetAll('group:0');
         foreach ($list as $key => $item) {
             if ($key != $user_id) {
                 $item         = unserialize($item);
@@ -104,7 +104,7 @@ class ImApiController extends HomeController
         //群组
         $group                    = array(
             "groupname" => "在线群",
-            "id"        => "101",
+            "id"        => "0",
             "avatar"    => "http://tp2.sinaimg.cn/2211874245/180/40050524279/0"
         );
         $array['data']['group'][] = $group;
@@ -184,7 +184,7 @@ class ImApiController extends HomeController
     public function getOffLineMsg(ChatLog $chatLog,Request $request)
     {
         $uid      = $request->post('uid');
-        //"(type='friend' and to_id='{$uid}') or (type='group' and to_id='101' and mine_id!={$uid})"
+        //"(type='friend' and to_id='{$uid}') or (type='group' and to_id='0' and mine_id!={$uid})"
         $result = $chatLog->where("(type='friend' and to_id='{$uid}' and is_send=0)")->orderBy('id desc')->limit('0,99')->get();
         krsort($result);
         $list=array();

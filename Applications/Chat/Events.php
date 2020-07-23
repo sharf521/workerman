@@ -3,7 +3,7 @@
 use \GatewayWorker\Lib\Gateway;
 
 define('MyPHP_KEY', 'kee__ewk__ss__sk');
-define('ROOT', __DIR__.'/../..');
+define('ROOT', __DIR__ . '/../..');
 define('DB_CONFIG', \App\Config::$db1);
 define('DB_CONFIG_FIX', \App\Config::$db1['dbfix']);
 
@@ -30,8 +30,8 @@ class Events
         if (!isset($data['get']['token'])) {
             Gateway::closeClient($client_id);
         }
-        $id=\App\Token::getUid($data['get']['token']);
-        if(!$id>0){
+        $id = \App\Token::getUid($data['get']['token']);
+        if (!$id > 0) {
             Gateway::closeClient($client_id);
         }
     }
@@ -45,14 +45,14 @@ class Events
     {
         $message      = json_decode($data, true);
         $message_type = $message['type'];
-//       if($message_type!='ping'){
-        echo "\r\n" . $data . "\r\n";
-//       }
+        if ($message_type != 'ping') {
+            echo "\r\n" . $data . "\r\n";
+        }
         switch ($message_type) {
             case 'init':
-                $serviceIds=$message['serviceIds'];
-                $uid = $message['id'];
-                if(empty($uid) || $uid!=\App\Token::getUid($message['token'])){
+                $serviceIds = $message['serviceIds'];//客服ids
+                $uid        = $message['id'];
+                if (empty($uid) || $uid != \App\Token::getUid($message['token'])) {
                     return;
                 }
                 // 设置session
@@ -76,18 +76,17 @@ class Events
                     //'groupid'  => 0//接受端再赋值要添加的组
                 ));
                 Gateway::sendToAll(json_encode($reg_message), null, $client_id);
-                // 让当前客户端加入群组101
-                Gateway::joinGroup($client_id, 'group:101');
-                self::$redis->hSet('group:101', $uid, serialize($_SESSION['user']));
-
-                if(empty($serviceIds)){
+                // 让当前客户端加入群组
+                Gateway::joinGroup($client_id, 'group:0');//在线
+                self::$redis->hSet('group:0', $uid, serialize($_SESSION['user']));
+                if (empty($serviceIds)) {
                     // redis同步在线终端
-                    $uids=Gateway::getUidListByGroup('group:101');
-                    $list=self::$redis->hGetAll('group:101');
-                    $arr_online=[];
-                    foreach ($list as $key=>$item){
-                        if(!array_key_exists($key,$uids)){
-                            self::$redis->hDel('group:101', $key);
+                    $uids       = Gateway::getUidListByGroup('group:0');
+                    $list       = self::$redis->hGetAll('group:0');
+                    $arr_online = [];
+                    foreach ($list as $key => $item) {
+                        if (!array_key_exists($key, $uids)) {
+                            self::$redis->hDel('group:0', $key);
                             continue;
                         }
                         if ($key != $uid) {
@@ -102,12 +101,11 @@ class Events
                             $arr_online[] = $u;
                         }
                     }
-
-                }else{
-                    $arr_online=[];
-                    foreach ($serviceIds as $uid){
-                        if(Gateway::isUidOnline($uid)==1){
-                            $arr_online[]=$uid;
+                } else {
+                    $arr_online = [];
+                    foreach ($serviceIds as $uid) {
+                        if (Gateway::isUidOnline($uid) == 1) {
+                            $arr_online[] = $uid;
                         }
                     }
                 }
@@ -119,12 +117,20 @@ class Events
                 );
                 Gateway::sendToClient($client_id, json_encode($init_message));
                 return;
+            case 'joinLuckyBag':
+                $group_id   = $message['bag_id'];//分组id
+                $uid        = $message['uid'];
+                // 将当前链接与uid绑定
+                Gateway::bindUid($client_id, $uid);
+                Gateway::joinGroup($client_id, "group:{$group_id}");
+                self::$redis->hSet("group:{$group_id}", $uid, serialize($_SESSION['user']));
+                return;
             case 'chatMessage':
                 // 聊天消息
-                $type  = $message['data']['to']['type'];
-                $from_id=$message['data']['mine']['id'];
-                $to_id = $message['data']['to']['id'];
-                $content=htmlspecialchars($message['data']['mine']['content']);
+                $type         = $message['data']['to']['type'];
+                $from_id      = $message['data']['mine']['id'];
+                $to_id        = $message['data']['to']['id'];
+                $content      = htmlspecialchars($message['data']['mine']['content']);
                 $chat_message = array(
                     'message_type' => 'chatMessage',
                     'data'         => array(
@@ -140,7 +146,7 @@ class Events
                     )
                 );
 
-                $chatLog=(new \App\Model\ChatLog());
+                $chatLog          = (new \App\Model\ChatLog());
                 $chatLog->type    = $type;
                 $chatLog->mine_id = $from_id;
                 $chatLog->content = $content;
@@ -150,10 +156,10 @@ class Events
                     case 'friend':
                         // 如果不在线就先存起来
                         if (!Gateway::isUidOnline($to_id)) {
-                            $chatLog->is_send=0;
+                            $chatLog->is_send = 0;
                         } else {
                             Gateway::sendToUid($to_id, json_encode($chat_message));
-                            $chatLog->is_send=1;
+                            $chatLog->is_send = 1;
                         }
                         break;
                     // 群聊
@@ -172,11 +178,19 @@ class Events
                 Gateway::sendToAll(json_encode($status_message));
                 return;
             case 'addTimerCurl':
-                \Workerman\Lib\Timer::add(60 * $message['minute'], function ($url) {
+                \Workerman\Lib\Timer::add(60 * $message['minute'], function ($url, $about_type, $about_id) {
                     echo "timer {$url}\n";
-                    self::log('workerman',"timer {$url}\n");
+                    self::log('workerman', "timer {$url}\n");
                     echo self::curl_url($url);
-                }, array($message['url']), false);
+                    if ($about_type == 'openLuckyBag') {
+                        $_message = array(
+                            'message_type' => 'openLuckyBag',
+                            'id'           => $about_id
+                        );
+                        Gateway::sendToGroup("group:{$about_id}",json_encode($_message));
+                        self::$redis->delete("group:{$about_id}");
+                    }
+                }, array($message['url'], $message['about_type'], $message['about_id']), false);
                 return;
             case 'ping':
                 return;
@@ -197,18 +211,18 @@ class Events
             'message_type' => 'logout',
             'id'           => $uid
         );
-        $c_list=Gateway::getClientIdByUid($uid);
-        if(empty($c_list)){
+        $c_list         = Gateway::getClientIdByUid($uid);
+        if (empty($c_list)) {
             //uid 的所有终端都下线
             Gateway::sendToAll(json_encode($logout_message));
-            self::$redis->hDel('group:101', $uid);
+            self::$redis->hDel('group:0', $uid);
         }
     }
 
     public static function curl_url($url, $data = array())
     {
         $ssl = substr($url, 0, 8) == "https://" ? TRUE : FALSE;
-        $ch = curl_init();
+        $ch  = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HEADER, 0);
         if ($data) {
@@ -234,17 +248,17 @@ class Events
         return $data;
     }
 
-    public static function log($name='error',$data)
+    public static function log($name = 'error', $data)
     {
         $path = ROOT . "/public/data/logs/";
         if (!file_exists($path)) {
-            mkdir($path,0777,true);
+            mkdir($path, 0777, true);
         }
-        $myfile = fopen($path.$name.'_'.date('Ym').".txt", "a+");
-        if(is_array($data)){
-            $data=json_encode($data);
+        $myfile = fopen($path . $name . '_' . date('Ym') . ".txt", "a+");
+        if (is_array($data)) {
+            $data = json_encode($data);
         }
-        fwrite($myfile, '【'.date('Y-m-d H:i:s').'】'."\t".$data."\r\n");
+        fwrite($myfile, '【' . date('Y-m-d H:i:s') . '】' . "\t" . $data . "\r\n");
         fclose($myfile);
     }
 }

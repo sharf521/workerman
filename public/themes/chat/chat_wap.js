@@ -109,7 +109,7 @@ function initLayIM() {
                 }]
                 ,"group": [{
                     "groupname": "在线群"
-                    ,"id": "101"
+                    ,"id": "0"
                     ,"avatar": "http://tp2.sinaimg.cn/2211874245/180/40050524279/0"
                 }]
             }

@@ -117,13 +117,20 @@ class Events
                 );
                 Gateway::sendToClient($client_id, json_encode($init_message));
                 return;
+            case 'initLuckyBag':
+                $uid = \App\Token::getUid($message['token']);
+                if ($uid>0) {
+                    // 将当前链接与uid绑定
+                    Gateway::bindUid($client_id, $uid);
+                }
+                return;
             case 'joinLuckyBag':
                 $group_id   = $message['bag_id'];//分组id
                 $uid        = $message['uid'];
-                // 将当前链接与uid绑定
-                Gateway::bindUid($client_id, $uid);
-                Gateway::joinGroup($client_id, "group:{$group_id}");
-                self::$redis->hSet("group:{$group_id}", $uid, serialize($_SESSION['user']));
+                $cidArr=Gateway::getClientIdByUid($uid);
+                foreach ($cidArr as $client_id){
+                    Gateway::joinGroup($client_id, "group:bag:{$group_id}");
+                }
                 return;
             case 'chatMessage':
                 // 聊天消息
@@ -187,8 +194,7 @@ class Events
                             'message_type' => 'openLuckyBag',
                             'id'           => $about_id
                         );
-                        Gateway::sendToGroup("group:{$about_id}",json_encode($_message));
-                        self::$redis->delete("group:{$about_id}");
+                        Gateway::sendToGroup("group:bag:{$about_id}",json_encode($_message));
                     }
                 }, array($message['url'], $message['about_type'], $message['about_id']), false);
                 return;

@@ -56,7 +56,7 @@ function connect_workerman() {
                         system: true //系统消息
                         , id: IM.toUser.id //聊天窗口ID
                         , type: "friend" //聊天窗口类型
-                        , content: '对方已离线'
+                        , content: '对方已下线'
                     });
                     layui.mobile.layim.setFriendStatus(msg.id, 'offline'); //设置指定好友在线，即头像置灰
                 }
@@ -68,7 +68,7 @@ function connect_workerman() {
                         system: true //系统消息
                         , id: IM.toUser.id //聊天窗口ID
                         , type: "friend" //聊天窗口类型
-                        , content: '对方已上线'
+                        , content: '对方上线'
                     });
                     layui.mobile.layim.setFriendStatus(msg.id, 'online'); //设置指定好友在线，即头像置灰
                 }

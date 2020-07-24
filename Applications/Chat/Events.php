@@ -50,7 +50,6 @@ class Events
         }
         switch ($message_type) {
             case 'init':
-                $serviceIds = $message['serviceIds'];//客服ids
                 $uid        = $message['id'];
                 if (empty($uid) || $uid != \App\Token::getUid($message['token'])) {
                     return;
@@ -79,7 +78,19 @@ class Events
                 // 让当前客户端加入群组
                 Gateway::joinGroup($client_id, 'group:0');//在线
                 self::$redis->hSet('group:0', $uid, serialize($_SESSION['user']));
-                if (empty($serviceIds)) {
+                if ($message['from_dev'] == 'app') {
+                    return;
+                }
+
+                if (!empty($message['serviceIds'])) {
+                    //客服ids
+                    $arr_online = [];
+                    foreach ($message['serviceIds'] as $uid) {
+                        if (Gateway::isUidOnline($uid) == 1) {
+                            $arr_online[] = $uid;
+                        }
+                    }
+                } else {
                     // redis同步在线终端
                     $uids       = Gateway::getUidListByGroup('group:0');
                     $list       = self::$redis->hGetAll('group:0');
@@ -99,13 +110,6 @@ class Events
                                 "status"   => "online"
                             );
                             $arr_online[] = $u;
-                        }
-                    }
-                } else {
-                    $arr_online = [];
-                    foreach ($serviceIds as $uid) {
-                        if (Gateway::isUidOnline($uid) == 1) {
-                            $arr_online[] = $uid;
                         }
                     }
                 }

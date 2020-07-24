@@ -22,6 +22,13 @@ class ImApiController extends HomeController
     public function initUser(Request $request)
     {
         $user_id  = $request->post('user_id');
+        if(!is_numeric($user_id)){
+            //app user_id传入token
+            $_uid=Token::getUid($user_id);
+            if($_uid>0){
+                $user_id=$_uid;
+            }
+        }
         $app_id   = (int)$request->post('app_id');
         $avatar   = $request->post('avatar');
         $nickname = $request->post('nickname');
@@ -217,15 +224,20 @@ class ImApiController extends HomeController
 
     public function chatLog(ChatLog $chatLog, Request $request)
     {
-        $id      = $request->get('id');
-        $type    = $request->get('type');
-        $user_id=Token::getUid($request->get(2));
+        $id       = $request->get('id');
+        $type     = $request->get('type');
+        $page     = (int)$request->get('page');
+        $pageSize = (int)$request->get('pageSize');
+        if($pageSize==0){
+            $pageSize=10;
+        }
+        $user_id  = Token::getUid($request->get(2));
         if ($type == 'group') {
-            $result = $chatLog->where("type='{$type}' and to_id='{$id}'")->orderBy('id desc')->pager($_GET['page'], 10);
+            $result = $chatLog->where("type='{$type}' and to_id='{$id}'")->orderBy('id desc')->pager($page, $pageSize);
         } else {
             $id     = (int)$id;
             $where  = "type='{$type}' and ((mine_id='{$user_id}' and to_id='{$id}')||(mine_id='{$id}' and to_id='{$user_id}'))";
-            $result = $chatLog->where($where)->orderBy('id desc')->pager($_GET['page'], 10);
+            $result = $chatLog->where($where)->orderBy('id desc')->pager($page, $pageSize);
         }
         $arr_arr = array();
         krsort($result['list']);

@@ -106,6 +106,17 @@ function initLayIM() {
                 , time: 2 //2秒后自动关闭
             });
         };
+        //删除记录
+        var local = layui.data('layim-mobile')[IM.user.id]; //获取当前用户本地数据
+        if(local.chatlog){
+            delete local.chatlog['friend'+IM.toUser.id];
+        }
+        //向localStorage同步数据
+        layui.data('layim-mobile', {
+            key: IM.user.id
+            ,value: local
+        });
+
         //基础配置
         layim.config({
             //初始化接口
@@ -137,6 +148,9 @@ function initLayIM() {
         });
 
         layui.mobile.layim.chat(IM.toUser);
+
+
+
 
         //监听发送消息
         layim.on('sendMessage', function (data) {
@@ -222,17 +236,18 @@ function initLayIM() {
             //或者做一些其他的事
         });
 
-        // 离线消息
-        $.post("/imApi/getOffLineMsg", {uid: IM.user.id}, function (data) {
-            if (data.code == 0) {
-                var history_message = data.data;
-                for (var key in history_message) {
-                    console.log(history_message[key]);
-                    layim.getMessage(history_message[key]);
+        // 记录缓存已清除，拉取显示历史记录
+        $.get('/imApi/chatLog/' + IM.user.token + '/', {id: IM.toUser.id, type: 'friend', page: 1,pageSize:5}, function (res) {
+            var data = res.rows;
+            var html = '';
+            for (var key in data) {
+                if (IM.user.id == data[key].id) {
+                    html += '<li class="layim-chat-mine"><div class="layim-chat-user"><img src="' + data[key].avatar + '"><cite><i>' + data[key].created_at + '</i>' + data[key].username + '</cite></div><div class="layim-chat-text">' + layim.content(data[key].content) + '</div></li>';
+                } else {
+                    html += '<li><div class="layim-chat-user"><img src="' + data[key].avatar + '"><cite>' + data[key].username + '<i>' + data[key].created_at + '</i></cite></div><div class="layim-chat-text">' + layim.content(data[key].content) + '</div></li>';
                 }
-            } else {
-                alert(data.msg);
             }
+            $(".layim-chat-main ul").html(html);
         }, 'json');
 
         if (IM.online_list.includes(IM.toUser.id)) {
@@ -247,7 +262,7 @@ function initLayIM() {
                 system: true //系统消息
                 , id: IM.toUser.id //聊天窗口ID
                 , type: "friend" //聊天窗口类型
-                , content: '对方已离线'
+                , content: '对方已下线'
             });
         }
     });

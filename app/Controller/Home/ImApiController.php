@@ -33,6 +33,14 @@ class ImApiController extends HomeController
         $avatar   = $request->post('avatar');
         $nickname = $request->post('nickname');
         $sign = $request->post('sign');
+        if (empty($user_id) || empty($app_id)) {
+            $return = array(
+                'code'  => '-1',
+                'error' => '参数错误',
+            );
+            echo json_encode($return);
+            exit;
+        }
         $user     = (new AppUser())->getUserOrCreate($user_id, $app_id, $nickname, $avatar,$sign);
         $return   = array(
             'code' => 0,

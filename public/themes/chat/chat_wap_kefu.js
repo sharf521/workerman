@@ -248,22 +248,24 @@ function initLayIM() {
                 }
             }
             $(".layim-chat-main ul").html(html);
+
+            if (IM.online_list.includes(IM.toUser.id)) {
+                layim.getMessage({
+                    system: true //系统消息
+                    , id: IM.toUser.id //聊天窗口ID
+                    , type: "friend" //聊天窗口类型
+                    , content: '对方在线'
+                });
+            } else {
+                layim.getMessage({
+                    system: true //系统消息
+                    , id: IM.toUser.id //聊天窗口ID
+                    , type: "friend" //聊天窗口类型
+                    , content: '对方已下线'
+                });
+            }
         }, 'json');
 
-        if (IM.online_list.includes(IM.toUser.id)) {
-            layim.getMessage({
-                system: true //系统消息
-                , id: IM.toUser.id //聊天窗口ID
-                , type: "friend" //聊天窗口类型
-                , content: '对方在线'
-            });
-        } else {
-            layim.getMessage({
-                system: true //系统消息
-                , id: IM.toUser.id //聊天窗口ID
-                , type: "friend" //聊天窗口类型
-                , content: '对方已下线'
-            });
-        }
+
     });
 }

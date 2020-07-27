@@ -36,7 +36,7 @@ class ChatController extends HomeController
         $this->view('kefu');
     }
 
-    //chat/chatWap/?app_id=10&token={}&to_uid=3
+    //chat/chatWap/?app_id=10&token={}&to_uid={app user id}&to_im_id={chat user id}
     public function chatWap(Request $request)
     {
         $data['user_id'] = Token::getUid($request->get('token'));
@@ -53,12 +53,23 @@ class ChatController extends HomeController
             $app_id = 10;
         }
         $data['app_id'] = $app_id;
-        $toUser         = (new AppUser())->getUserOrCreate($to_uid, 10);
-        $data['toUser'] = array(
-            'id'       => $toUser['id'],
-            'username' => $toUser['nickname'],
-            'avatar'   => $toUser['avatar']
-        );
+        if($to_uid!=0){
+            $toUser         = (new AppUser())->getUserOrCreate($to_uid, 10);
+            $data['toUser'] = array(
+                'id'       => $toUser['id'],
+                'username' => $toUser['nickname'],
+                'avatar'   => $toUser['avatar']
+            );
+        }else{
+            $id = (int)$request->get('to_im_id');
+            $toUser=(new AppUser())->find($id);
+            $data['toUser'] = array(
+                'id'       => $toUser->id,
+                'username' => $toUser->nickname,
+                'avatar'   => $toUser->avatar
+            );
+        }
+
         $this->template = 'default_wap';
         $this->view('chatWap', $data);
     }

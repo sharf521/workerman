@@ -108,7 +108,7 @@ function initLayIM() {
         };
         //删除记录
         var local = layui.data('layim-mobile')[IM.user.id]; //获取当前用户本地数据
-        if(local['chatlog']){
+        if(local.chatlog != undefined){
             delete local.chatlog['friend'+IM.toUser.id];
         }
         //向localStorage同步数据

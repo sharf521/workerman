@@ -87,6 +87,7 @@ class ChatController extends HomeController
 
     public function socket()
     {
+        //test
         $data = array(
             'type'     => 'addTimerCurl',
             'url'       => 'http://app.5-58.com',

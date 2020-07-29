@@ -134,10 +134,6 @@ function initLayIM() {
             , uploadImage: {
                 url: '/pictureApi/memberApi/upload/save?type=chat&token=' + window.localStorage.getItem('im_token')
             }
-            // 上传文件
-            , uploadFile: {
-                url: '/pictureApi/memberApi/upload/save?type=chat&token=' + window.localStorage.getItem('im_token')
-            }
             , isAudio: true //开启聊天工具栏音频
             , isVideo: true //开启聊天工具栏视频
             , title: 'MyChat'

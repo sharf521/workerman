@@ -18,7 +18,7 @@ $(function () {
             connect_workerman();
             setInterval('send_heartbeat()', 20000);
         } else {
-            alert(data.msg);
+            console.log('initUser Error:'+data.msg);
         }
     }, 'json');
 });

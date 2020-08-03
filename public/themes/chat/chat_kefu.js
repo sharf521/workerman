@@ -38,7 +38,7 @@ function IM_initUser()
             connect_workerman();
             setInterval('send_heartbeat()', 20000);
         } else {
-            alert(data.msg);
+            console.log('initUser Error:'+data.msg);
         }
     }, 'json');
 }
@@ -170,7 +170,7 @@ function initLayIM() {
                     layui.layim.getMessage(history_message[key]);
                 }
             } else {
-                alert(data.msg);
+                console.log('getOffLineMsg Error:'+data.msg);
             }
         }, 'json');
         if(IM.showChat_id){

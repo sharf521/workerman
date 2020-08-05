@@ -44,7 +44,9 @@ class AppUser extends Model
             if (!empty($avatar)) {
                 $user->avatar = $avatar;
             }
-            $user->save();
+            if(!empty($nickname) || !empty($avatar)){
+                $user->save();
+            }
             $id = $user->id;
         }
         return array(

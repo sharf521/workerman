@@ -19,24 +19,31 @@ class AppUser extends Model
         return $user;
     }
 
-    public function getUserOrCreate($user_id, $app_id, $nickname='', $avatar='', $sign = '')
+    public function getUserOrCreate($user_id, $app_id, $nickname = '', $avatar = '', $sign = '')
     {
-        if (empty($avatar)) {
-            $avatar = 'http://lorempixel.com/38/38/?' . $user_id;
-        }
-        if (empty($nickname)) {
-            $nickname = 'user' . $user_id;
-        }
-        $user           = $this->getUser($user_id, $app_id);
-        $user->avatar   = $avatar;
-        $user->nickname = $nickname;
+        $user = $this->getUser($user_id, $app_id);
         if (!$user->is_exist) {
+            if (empty($avatar)) {
+                $avatar = 'http://lorempixel.com/38/38/?' . $user_id;
+            }
+            if (empty($nickname)) {
+                $nickname = 'user' . $user_id;
+            }
+            $user->avatar   = $avatar;
+            $user->nickname = $nickname;
+
             $user->user_id = $user_id;
             $user->app_id  = $app_id;
             $user->openid  = $this->createOpenId($user_id, $app_id);
             $user->sign    = $sign;
             $id            = $user->save(true);
         } else {
+            if (!empty($nickname)) {
+                $user->nickname = $nickname;
+            }
+            if (!empty($avatar)) {
+                $user->avatar = $avatar;
+            }
             $user->save();
             $id = $user->id;
         }

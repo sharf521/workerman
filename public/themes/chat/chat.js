@@ -153,8 +153,10 @@ function initLayIM() {
         });
         //layim建立就绪
         layim.on('ready', function (res) {
-            console.log('ready：' + res);
+            console.log('ready：');
             console.log(res);
+            var local = layui.data('layim');
+            console.log(local);
             // 离线消息
             $.post("/imApi/getOffLineMsg", {uid: IM.user.id}, function (data) {
                 if (data.code == 0) {

@@ -258,7 +258,8 @@ class ImApiController extends HomeController
                     'avatar'     => $user->avatar,
                     'type'       => $row->type,
                     'content'    => $row->content,
-                    'created_at' => substr($row->created_at,5,-3)
+                    'created_at' => substr($row->created_at, 5, -3),
+                    'timestamp'  => strtotime($row->created_at)
                 );
                 array_push($arr_arr, $arr);
             }

@@ -259,7 +259,7 @@ class ImApiController extends HomeController
                     'type'       => $row->type,
                     'content'    => $row->content,
                     'created_at' => substr($row->created_at, 5, -3),
-                    'timestamp'  => strtotime($row->created_at)
+                    'timestamp'  => strtotime($row->created_at).rand(1000,9999)
                 );
                 array_push($arr_arr, $arr);
             }

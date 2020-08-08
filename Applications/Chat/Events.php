@@ -142,18 +142,20 @@ class Events
                 $from_id      = $message['data']['mine']['id'];
                 $to_id        = $message['data']['to']['id'];
                 $content      = htmlspecialchars($message['data']['mine']['content']);
+                $content_duration=(int)$message['data']['mine']['content_duration'];
                 $chat_message = array(
                     'message_type' => 'chatMessage',
                     'data'         => array(
-                        'username'  => $message['data']['mine']['username'],
-                        'avatar'    => $message['data']['mine']['avatar'],
-                        'id'        => $type == 'friend' ? $from_id : $to_id,//消息的来源ID（如果是私聊，则是用户id，如果是群聊，则是群组id）
-                        'type'      => $type,
-                        'content'   => $content,
-                        'fromid'    => $message['data']['mine']['id'],//消息的发送者id（比如群组中的某个消息发送者）
-                        'mine'      => false, //是否我发送的消息，如果为true，则会显示在右方
-                        'cid'       => 0,//消息id，可不传。除非你要对消息进行一些操作（如撤回）
-                        'timestamp' => time() * 1000
+                        'username'        => $message['data']['mine']['username'],
+                        'avatar'          => $message['data']['mine']['avatar'],
+                        'id'              => $type == 'friend' ? $from_id : $to_id,//消息的来源ID（如果是私聊，则是用户id，如果是群聊，则是群组id）
+                        'type'            => $type,
+                        'content'         => $content,
+                        'content_duration' => $content_duration,
+                        'fromid'          => $message['data']['mine']['id'],//消息的发送者id（比如群组中的某个消息发送者）
+                        'mine'            => false, //是否我发送的消息，如果为true，则会显示在右方
+                        'cid'             => 0,//消息id，可不传。除非你要对消息进行一些操作（如撤回）
+                        'timestamp'       => time() * 1000
                     )
                 );
 
@@ -161,6 +163,7 @@ class Events
                 $chatLog->type    = $type;
                 $chatLog->mine_id = $from_id;
                 $chatLog->content = $content;
+                $chatLog->content_duration=$content_duration;
                 $chatLog->to_id   = $to_id;
                 switch ($type) {
                     // 私聊

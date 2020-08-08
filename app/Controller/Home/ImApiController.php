@@ -172,17 +172,6 @@ class ImApiController extends HomeController
         echo $json;
     }
 
-    //保存发送的消息
-    public function post_message(ChatLog $chatLog)
-    {
-        $data             = $_POST['data'];
-        $chatLog->type    = $data['to']['type'];
-        $chatLog->mine_id = $data['mine']['id'];
-        $chatLog->content = $data['mine']['content'];
-        $chatLog->to_id   = $data['to']['id'];
-        $chatLog->save();
-    }
-
     public function changSign(Request $request)
     {
         $uid=$request->post('uid');
@@ -212,6 +201,7 @@ class ImApiController extends HomeController
                     'id'        => $row->type == 'friend' ? $row->mine_id : $row->to_id,//消息的来源ID（如果是私聊，则是用户id，如果是群聊，则是群组id）
                     'type'      => $row->type,
                     'content'    => $row->content,
+                    'content_duration'=>$row->content_duration,
                     'fromid'    => $row->type == 'friend' ? $row->mine_id : $row->to_id,//消息的发送者id（比如群组中的某个消息发送者）
                     'mine'      => false, //是否我发送的消息，如果为true，则会显示在右方
                     'cid'       => 0,//消息id，可不传。除非你要对消息进行一些操作（如撤回）
@@ -258,6 +248,7 @@ class ImApiController extends HomeController
                     'avatar'     => $user->avatar,
                     'type'       => $row->type,
                     'content'    => $row->content,
+                    'content_duration'=>$row->content_duration,
                     'created_at' => substr($row->created_at, 5, -3),
                     'timestamp'  => strtotime($row->created_at).rand(1000,9999)
                 );

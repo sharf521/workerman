@@ -38,8 +38,9 @@ class Events
 
     /**
      * 当客户端发来消息时触发
-     * @param int $client_id 连接id
-     * @param mixed $message 具体消息
+     * @param $client_id
+     * @param $data
+     * @throws Exception
      */
     public static function onMessage($client_id, $data)
     {
@@ -54,11 +55,15 @@ class Events
                 if (empty($uid) || $uid != \App\Token::getUid($message['token'])) {
                     return;
                 }
-                // 设置session
+                $app_id=(int)$message['app_id'];
+                if(empty($app_id)){
+                    $app_id=10;
+                }
                 $_SESSION['user'] = array(
                     'username' => $message['username'],
                     'avatar'   => $message['avatar'],
                     'id'       => $uid,
+                    'app_id'   => $app_id,
                     'sign'     => $message['sign']
                 );
 
@@ -74,10 +79,11 @@ class Events
                     'sign'     => $message['sign'],
                     //'groupid'  => 0//接受端再赋值要添加的组
                 ));
-                Gateway::sendToAll(json_encode($reg_message), null, $client_id);
+                //Gateway::sendToAll(json_encode($reg_message), null, $client_id);
+                Gateway::sendToGroup("group:{$app_id}", json_encode($reg_message), $client_id);
                 // 让当前客户端加入群组
-                Gateway::joinGroup($client_id, 'group:0');//在线
-                self::$redis->hSet('group:0', $uid, serialize($_SESSION['user']));
+                Gateway::joinGroup($client_id, "group:{$app_id}");//在线
+                self::$redis->hSet("group:{$app_id}", $uid, serialize($_SESSION['user']));
                 if ($message['from_dev'] == 'app') {
                     return;
                 }
@@ -92,12 +98,12 @@ class Events
                     }
                 } else {
                     // redis同步在线终端
-                    $uids       = Gateway::getUidListByGroup('group:0');
-                    $list       = self::$redis->hGetAll('group:0');
+                    $uids       = Gateway::getUidListByGroup("group:{$app_id}");
+                    $list       = self::$redis->hGetAll("group:{$app_id}");
                     $arr_online = [];
                     foreach ($list as $key => $item) {
                         if (!array_key_exists($key, $uids)) {
-                            self::$redis->hDel('group:0', $key);
+                            self::$redis->hDel("group:0", $key);
                             continue;
                         }
                         if ($key != $uid) {
@@ -216,10 +222,12 @@ class Events
     /**
      * 当用户断开连接时触发
      * @param int $client_id 连接id
+     * @throws Exception
      */
     public static function onClose($client_id)
     {
         $uid            = $_SESSION['user']['id'];
+        $app_id         = $_SESSION['user']['app_id'];
         $logout_message = array(
             'message_type' => 'logout',
             'id'           => $uid
@@ -228,7 +236,7 @@ class Events
         if (empty($c_list)) {
             //uid 的所有终端都下线
             Gateway::sendToAll(json_encode($logout_message));
-            self::$redis->hDel('group:0', $uid);
+            self::$redis->hDel("group:{$app_id}", $uid);
         }
     }
 

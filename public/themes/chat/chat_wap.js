@@ -4,6 +4,7 @@ $(function () {
             IM.ws=data.ws;
             var user = data.user;
             IM.user.id = user.id;
+            IM.user.app_id = user.app_id;
             IM.user.token = user.token;
             IM.user.avatar = user.avatar;
             IM.user.username = user.nickname;
@@ -109,7 +110,7 @@ function initLayIM() {
                 }]
                 ,"group": [{
                     "groupname": "在线群"
-                    ,"id": "0"
+                    ,"id": IM.user.app_id
                     ,"avatar": "http://tp2.sinaimg.cn/2211874245/180/40050524279/0"
                 }]
             }

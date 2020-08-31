@@ -42,11 +42,12 @@ class ImApiController extends HomeController
             exit;
         }
         $user     = (new AppUser())->getUserOrCreate($user_id, $app_id, $nickname, $avatar,$sign);
-        $return   = array(
+        $return = array(
             'code' => 0,
             'ws'   => Config::$ws_url,
             'user' => array(
                 'id'       => $user['id'],
+                'app_id'   => $app_id,
                 'avatar'   => $user['avatar'],
                 'nickname' => $user['nickname'],
                 'sign'     => $user['sign'],
@@ -80,7 +81,7 @@ class ImApiController extends HomeController
             "list"      => array()
         );
         $arr_online  = array();
-        $list        = $this->redis->hGetAll('group:0');
+        $list        = $this->redis->hGetAll("group:{$user->app_id}");
         foreach ($list as $key => $item) {
             if ($key != $user_id) {
                 $item         = unserialize($item);
@@ -117,9 +118,9 @@ class ImApiController extends HomeController
         $array['data']['friend'][] = $friendGroup;
 
         //群组
-        $group                    = array(
+        $group = array(
             "groupname" => "在线群",
-            "id"        => "0",
+            "id"        => $user->app_id,
             "avatar"    => "http://tp2.sinaimg.cn/2211874245/180/40050524279/0"
         );
         $array['data']['group'][] = $group;

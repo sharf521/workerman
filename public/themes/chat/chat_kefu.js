@@ -30,6 +30,7 @@ function IM_initUser()
             IM.ws = data.ws;
             var user = data.user;
             IM.user.id = user.id;
+            IM.user.app_id = user.app_id;
             IM.user.token = user.token;
             IM.user.avatar = user.avatar;
             IM.user.username = user.nickname;

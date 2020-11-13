@@ -57,6 +57,31 @@ class ImApiController extends HomeController
         echo json_encode($return);
     }
 
+    public function getUserInfo(Request $request)
+    {
+        $user_id = $request->get('user_id');
+        $app_id  = (int)$request->get('app_id');
+        $user    = (new AppUser())->getUser($user_id, $app_id);
+        if($user->is_exist){
+            $array = array(
+                'code' => 0,
+                'msg'  => '',
+                'data' => array(
+                    'id'       => $user->id,
+                    'avatar'   => $user->avatar,
+                    'nickname' => $user->nickname,
+                    'sign'     => $user->sign
+                )
+            );
+        }else{
+            $array = array(
+                'code' => 1,
+                'msg'  => 'not find user'
+            );
+        }
+        echo json_encode($array);
+    }
+
 //init
     public function getList(AppUser $user, Request $request)
     {

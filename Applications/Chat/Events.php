@@ -51,13 +51,13 @@ class Events
         }
         switch ($message_type) {
             case 'init':
-                $uid        = $message['id'];
+                $uid = $message['id'];
                 if (empty($uid) || $uid != \App\Token::getUid($message['token'])) {
                     return;
                 }
-                $app_id=(int)$message['app_id'];
-                if(empty($app_id)){
-                    $app_id=10;
+                $app_id = (int)$message['app_id'];
+                if (empty($app_id)) {
+                    $app_id = 10;
                 }
                 $_SESSION['user'] = array(
                     'username' => $message['username'],
@@ -129,48 +129,92 @@ class Events
                 return;
             case 'initLuckyBag':
                 $uid = \App\Token::getUid($message['token']);
-                if ($uid>0) {
+                if ($uid > 0) {
                     // 将当前链接与uid绑定
                     Gateway::bindUid($client_id, $uid);
                 }
                 return;
             case 'joinLuckyBag':
-                $group_id   = $message['bag_id'];//分组id
-                $uid        = $message['uid'];
-                $cidArr=Gateway::getClientIdByUid($uid);
-                foreach ($cidArr as $client_id){
+                $group_id = $message['bag_id'];//分组id
+                $uid      = $message['uid'];
+                $cidArr   = Gateway::getClientIdByUid($uid);
+                foreach ($cidArr as $client_id) {
                     Gateway::joinGroup($client_id, "group:bag:{$group_id}");
                 }
                 return;
+            case 'notice':
+                $app_id           = $message['app_id'];//分组id
+                $to_uid           = $message['to_uid'];
+                $_data            = $message['data'];
+                $title            = htmlspecialchars($_data['title']);
+                $content          = htmlspecialchars($_data['content']);
+                $state            = htmlspecialchars($_data['state']);
+                $type             = htmlspecialchars($_data['type']);
+                $add_time         = date('Y-m-d H:i:s');
+                $reg_message = array(
+                    'message_type' => 'notice',
+                    'data'         => array(
+                        'type'     => $type,
+                        'title'    => $title,
+                        'content'  => $content,
+                        'state'    => $state,
+                        'add_time' => $add_time
+                    )
+                );
+                $notice           = (new \App\Model\Notice());
+                $notice->app_id   = $app_id;
+                $notice->app_uid  = $to_uid;
+                $notice->user_id  = 0;//可能不存在
+                $notice->type     = 'notice';
+                $notice->title    = $title;
+                $notice->content  = $content;
+                $notice->state    = $state;
+                $notice->add_time = $add_time;
+                if ($to_uid == 0) {
+                    Gateway::sendToGroup("group:{$app_id}", json_encode($reg_message), $client_id);
+                } else {
+                    $user = (new \App\Model\AppUser())->getUser($to_uid, $app_id);
+                    if ($user->is_exist) {
+                        if (!Gateway::isUidOnline($user->id)) {
+                            $notice->is_send = 0;
+                        } else {
+                            Gateway::sendToUid($user->id, json_encode($reg_message));
+                            $notice->is_send = 1;
+                        }
+                        $notice->user_id = $user->id;
+                    }
+                }
+                $notice->save();
+                return;
             case 'chatMessage':
                 // 聊天消息
-                $type         = $message['data']['to']['type'];
-                $from_id      = $message['data']['mine']['id'];
-                $to_id        = $message['data']['to']['id'];
-                $content      = htmlspecialchars($message['data']['mine']['content']);
-                $content_duration=(int)$message['data']['mine']['content_duration'];
-                $chat_message = array(
+                $type             = $message['data']['to']['type'];
+                $from_id          = $message['data']['mine']['id'];
+                $to_id            = $message['data']['to']['id'];
+                $content          = htmlspecialchars($message['data']['mine']['content']);
+                $content_duration = (int)$message['data']['mine']['content_duration'];
+                $chat_message     = array(
                     'message_type' => 'chatMessage',
                     'data'         => array(
-                        'username'        => $message['data']['mine']['username'],
-                        'avatar'          => $message['data']['mine']['avatar'],
-                        'id'              => $type == 'friend' ? $from_id : $to_id,//消息的来源ID（如果是私聊，则是用户id，如果是群聊，则是群组id）
-                        'type'            => $type,
-                        'content'         => $content,
+                        'username'         => $message['data']['mine']['username'],
+                        'avatar'           => $message['data']['mine']['avatar'],
+                        'id'               => $type == 'friend' ? $from_id : $to_id,//消息的来源ID（如果是私聊，则是用户id，如果是群聊，则是群组id）
+                        'type'             => $type,
+                        'content'          => $content,
                         'content_duration' => $content_duration,
-                        'fromid'          => $message['data']['mine']['id'],//消息的发送者id（比如群组中的某个消息发送者）
-                        'mine'            => false, //是否我发送的消息，如果为true，则会显示在右方
-                        'cid'             => 0,//消息id，可不传。除非你要对消息进行一些操作（如撤回）
-                        'timestamp'       => time() * 1000
+                        'fromid'           => $message['data']['mine']['id'],//消息的发送者id（比如群组中的某个消息发送者）
+                        'mine'             => false, //是否我发送的消息，如果为true，则会显示在右方
+                        'cid'              => 0,//消息id，可不传。除非你要对消息进行一些操作（如撤回）
+                        'timestamp'        => time() * 1000
                     )
                 );
 
-                $chatLog          = (new \App\Model\ChatLog());
-                $chatLog->type    = $type;
-                $chatLog->mine_id = $from_id;
-                $chatLog->content = $content;
-                $chatLog->content_duration=$content_duration;
-                $chatLog->to_id   = $to_id;
+                $chatLog                   = (new \App\Model\ChatLog());
+                $chatLog->type             = $type;
+                $chatLog->mine_id          = $from_id;
+                $chatLog->content          = $content;
+                $chatLog->content_duration = $content_duration;
+                $chatLog->to_id            = $to_id;
                 switch ($type) {
                     // 私聊
                     case 'friend':
@@ -207,7 +251,7 @@ class Events
                             'message_type' => 'openLuckyBag',
                             'id'           => $about_id
                         );
-                        Gateway::sendToGroup("group:bag:{$about_id}",json_encode($_message));
+                        Gateway::sendToGroup("group:bag:{$about_id}", json_encode($_message));
                     }
                 }, array($message['url'], $message['about_type'], $message['about_id']), false);
                 return;
